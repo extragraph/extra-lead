@@ -1,4 +1,10 @@
-import type { AuditDataSource, AuditLocalContext, AuditPayload, AuditScoreSlice } from "@/types/audit";
+import type {
+  AuditDataSource,
+  AuditLocalContext,
+  AuditPayload,
+  AuditScoreSlice,
+  CompetitiveComparisonPayload,
+} from "@/types/audit";
 import { buildCompetitiveSimulation } from "./competitive-simulation";
 import { tryBuildCompetitiveFromPlaces } from "./places-competitive";
 import { analyzeDesignFromHtml } from "./design-checks";
@@ -88,18 +94,40 @@ export async function runAudit(
 
   const placesKey = getGooglePlacesKey();
 
-  let competitiveComparison = placesKey
-    ? await tryBuildCompetitiveFromPlaces({
-        prospectUrl: url,
-        html,
-        scores,
-        designChecks: design.checks,
-        basicFormPitch: basicForm,
-        pageSpeedKey: apiKey,
-        placesKey,
-        local,
-      })
-    : null;
+  const integrationHints: string[] = [];
+
+  if (!apiKey) {
+    integrationHints.push(
+      "Aucune clé Google côté serveur : ajoutez GOOGLE_API_KEY (recommandé) ou GOOGLE_PAGESPEED_API_KEY dans les variables d’environnement du déploiement (ex. Vercel), puis redéployez.",
+    );
+  } else if (!psi.ok) {
+    integrationHints.push(`PageSpeed : ${psi.error}`);
+    integrationHints.push(
+      "Vérifiez que l’API « PageSpeed Insights API » est activée sur le projet Google Cloud, et que la clé n’est pas restreinte aux seuls référents HTTP navigateur (incompatible avec les appels serveur Vercel).",
+    );
+  }
+
+  let competitiveComparison: CompetitiveComparisonPayload | undefined;
+  if (placesKey) {
+    const pr = await tryBuildCompetitiveFromPlaces({
+      prospectUrl: url,
+      html,
+      scores,
+      designChecks: design.checks,
+      basicFormPitch: basicForm,
+      pageSpeedKey: apiKey,
+      placesKey,
+      local,
+    });
+    if (pr.ok) {
+      competitiveComparison = pr.payload;
+    } else {
+      integrationHints.push(`Concurrents (Places) : ${pr.reason}`);
+      integrationHints.push(
+        "Activez « Places API (New) » sur le même projet GCP (facturation). Évitez la restriction de clé « Référents HTTP » pour les appels backend.",
+      );
+    }
+  }
 
   if (!competitiveComparison) {
     competitiveComparison = buildCompetitiveSimulation(
@@ -122,6 +150,7 @@ export async function runAudit(
     competitiveComparison,
     blockingPoints: blocking,
     oplead: buildOpleadBlock(basicForm, detectedFromHtml),
+    ...(integrationHints.length > 0 ? { integrationHints } : {}),
   };
 
   return { ok: true, payload };

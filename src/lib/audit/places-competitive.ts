@@ -113,9 +113,12 @@ async function auditCompetitorPlace(
   };
 }
 
+export type PlacesCompetitiveResult =
+  | { ok: true; payload: CompetitiveComparisonPayload }
+  | { ok: false; reason: string };
+
 /**
  * Concurrents réels via Places (recherche texte) + audit des sites trouvés.
- * Retourne `null` si pas de résultat exploitable (fallback simulation).
  */
 export async function tryBuildCompetitiveFromPlaces(input: {
   prospectUrl: string;
@@ -126,7 +129,7 @@ export async function tryBuildCompetitiveFromPlaces(input: {
   pageSpeedKey: string | undefined;
   placesKey: string;
   local?: AuditLocalContext | null;
-}): Promise<CompetitiveComparisonPayload | null> {
+}): Promise<PlacesCompetitiveResult> {
   const seed = hashString(input.prospectUrl);
   const city = input.local?.city?.trim() || detectCity(input.html, seed);
   const sector = input.local?.activity?.trim() || detectSector(input.html, input.prospectUrl, seed);
@@ -135,11 +138,13 @@ export async function tryBuildCompetitiveFromPlaces(input: {
   const hits = await searchTextPlaces(input.placesKey, textQuery, 20);
   if ("error" in hits) {
     console.error("[places] searchTextPlaces:", hits.error);
-    return null;
+    return { ok: false, reason: hits.error };
   }
 
   const prospectHost = hostKey(input.prospectUrl);
-  if (!prospectHost) return null;
+  if (!prospectHost) {
+    return { ok: false, reason: "URL prospect invalide pour filtrer les domaines." };
+  }
 
   const candidates = hits.filter((h) => {
     const n = normalizeAuditUrl(h.website);
@@ -156,8 +161,16 @@ export async function tryBuildCompetitiveFromPlaces(input: {
   }
 
   if (rows.length === 0) {
-    console.warn("[places] Aucun concurrent avec site web audité pour :", textQuery);
-    return null;
+    const nHits = hits.length;
+    const nCand = candidates.length;
+    const reason =
+      nHits === 0
+        ? `Aucun résultat Places pour « ${textQuery} » (affinez ville + activité).`
+        : nCand === 0
+          ? "Places a renvoyé des fiches sans site web public, ou seulement le domaine du prospect."
+          : "Aucun site concurrent n’a pu être audité (chargement / URL invalides).";
+    console.warn("[places]", reason, { textQuery, nHits, nCand });
+    return { ok: false, reason };
   }
 
   const prospect = buildProspectComparisonRow(
@@ -170,10 +183,13 @@ export async function tryBuildCompetitiveFromPlaces(input: {
   applyPenalty(prospect, rows, { places: true });
 
   return {
-    sectorLabel: sector,
-    cityLabel: city,
-    disclaimer:
-      "Concurrents proposés via Google Places (recherche texte) — scores calculés sur l’audit automatique de chaque site public.",
-    rows: [prospect, ...rows],
+    ok: true,
+    payload: {
+      sectorLabel: sector,
+      cityLabel: city,
+      disclaimer:
+        "Concurrents proposés via Google Places (recherche texte) — scores calculés sur l’audit automatique de chaque site public.",
+      rows: [prospect, ...rows],
+    },
   };
 }

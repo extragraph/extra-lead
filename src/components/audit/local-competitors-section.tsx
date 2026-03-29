@@ -1,14 +1,39 @@
 "use client";
 
 import type { CompetitiveComparisonPayload, ComparisonTier } from "@/types/audit";
+import { normalizeAuditUrl } from "@/lib/audit/url-allowlist";
 import {
   pickWinningCompetitorId,
   prospectLossFlags,
   type MetricKey,
 } from "@/lib/competitive-table-utils";
 import { GlassCard } from "@/components/ui/glass-card";
-import { AlertTriangle, Trophy, Users } from "lucide-react";
+import { AlertTriangle, ExternalLink, Trophy, Users } from "lucide-react";
 import { useMemo } from "react";
+
+function SiteUrlLink({ urlLabel }: { urlLabel: string }) {
+  const href = normalizeAuditUrl(urlLabel);
+  if (!href) {
+    return (
+      <p className="mt-0.5 truncate font-mono text-[11px] text-zinc-500" title={urlLabel}>
+        {urlLabel}
+      </p>
+    );
+  }
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mt-0.5 inline-flex max-w-full min-w-0 items-center gap-1 font-mono text-[11px] text-cyan-400/90 hover:text-cyan-300 hover:underline"
+      title={`${urlLabel} — ouvre dans un nouvel onglet`}
+    >
+      <span className="min-w-0 truncate">{urlLabel}</span>
+      <ExternalLink className="h-3 w-3 shrink-0 opacity-80" strokeWidth={2} aria-hidden />
+      <span className="sr-only">(nouvel onglet)</span>
+    </a>
+  );
+}
 
 function TierCell({
   tier,
@@ -145,12 +170,7 @@ export function LocalCompetitorsSection({ data }: Props) {
                         >
                           {row.name}
                         </p>
-                        <p
-                          className="mt-0.5 truncate font-mono text-[11px] text-zinc-500"
-                          title={row.urlLabel}
-                        >
-                          {row.urlLabel}
-                        </p>
+                        <SiteUrlLink urlLabel={row.urlLabel} />
                       </div>
                     </div>
                   </td>

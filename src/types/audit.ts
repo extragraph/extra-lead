@@ -74,4 +74,9 @@ export interface AuditPayload {
     /** true si le formulaire basique a été vu dans le HTML (pas l’heuristique de secours) */
     detectedFromHtml: boolean;
   };
+  /**
+   * Indices si scores simulés ou concurrents simulés malgré une clé attendue
+   * (clé absente sur le serveur, API désactivée, restriction référents, etc.).
+   */
+  integrationHints?: string[];
 }

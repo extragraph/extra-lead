@@ -36,11 +36,24 @@ export async function fetchPageSpeedScores(
     cache: "no-store",
   });
 
+  const rawBody = await res.text();
+
   if (!res.ok) {
-    return { ok: false, error: `PageSpeed HTTP ${res.status}` };
+    let detail = `HTTP ${res.status}`;
+    try {
+      const errJson = JSON.parse(rawBody) as { error?: { message?: string } };
+      if (errJson.error?.message) {
+        detail = `${detail} — ${errJson.error.message}`;
+      } else if (rawBody) {
+        detail = `${detail} — ${rawBody.slice(0, 240)}`;
+      }
+    } catch {
+      if (rawBody) detail = `${detail} — ${rawBody.slice(0, 240)}`;
+    }
+    return { ok: false, error: `PageSpeed ${detail}` };
   }
 
-  const json = (await res.json()) as {
+  const json = JSON.parse(rawBody) as {
     lighthouseResult?: {
       categories?: Record<string, { score: number | null }>;
       audits?: Record<string, { score: number | null }>;
@@ -49,7 +62,7 @@ export async function fetchPageSpeedScores(
   };
 
   if (json.error?.message) {
-    return { ok: false, error: json.error.message };
+    return { ok: false, error: `PageSpeed — ${json.error.message}` };
   }
 
   const lh = json.lighthouseResult;

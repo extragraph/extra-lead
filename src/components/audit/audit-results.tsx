@@ -12,6 +12,28 @@ import { LocalCompetitorsSection } from "@/components/audit/local-competitors-se
 import { SiteScreenshotCard } from "@/components/audit/site-screenshot-card";
 import { GlassCard } from "@/components/ui/glass-card";
 import { getGlobalAverage, letterGradeFromAverage } from "@/lib/score-grade";
+import { AlertCircle } from "lucide-react";
+
+function IntegrationHintsPanel({ hints }: { hints: string[] }) {
+  if (hints.length === 0) return null;
+  return (
+    <div
+      className="rounded-xl border border-amber-500/35 bg-amber-500/10 px-4 py-3 text-sm text-amber-100"
+      role="status"
+    >
+      <div className="flex gap-2">
+        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" strokeWidth={2} />
+        <ul className="list-inside list-disc space-y-1.5 text-amber-100/95">
+          {hints.map((h, i) => (
+            <li key={i} className="leading-snug">
+              {h}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
 
 function SourceBadge({ payload }: { payload: AuditPayload }) {
   const { dataSource } = payload;
@@ -39,6 +61,9 @@ function SourceBadge({ payload }: { payload: AuditPayload }) {
 export function AuditResults({ payload }: { payload: AuditPayload }) {
   const globalAvg = getGlobalAverage(payload.scores);
   const letter = letterGradeFromAverage(globalAvg);
+  const hasOg = payload.openGraph.present;
+  const hasBlocking = payload.blockingPoints.length > 0;
+  const bentoRight = hasOg || hasBlocking;
 
   return (
     <div className="space-y-8">
@@ -54,6 +79,10 @@ export function AuditResults({ payload }: { payload: AuditPayload }) {
           <ExportAuditPdfButton audit={payload} />
         </div>
       </div>
+
+      {payload.integrationHints && payload.integrationHints.length > 0 && (
+        <IntegrationHintsPanel hints={payload.integrationHints} />
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2 lg:items-stretch">
         <SiteScreenshotCard
@@ -79,19 +108,36 @@ export function AuditResults({ payload }: { payload: AuditPayload }) {
         <LocalCompetitorsSection data={payload.competitiveComparison} />
       )}
 
-      <div
-        className={
-          payload.blockingPoints.length > 0 ? "grid gap-6 lg:grid-cols-2" : "grid gap-6"
-        }
-      >
-        <DesignChecklistPanel checks={payload.designChecks} />
-        <BlockingPointsPanel points={payload.blockingPoints} />
-      </div>
+      <OpleadSection oplead={payload.oplead} />
 
-      <div className="space-y-8 border-t border-white/5 pt-8">
-        <OpleadSection oplead={payload.oplead} />
-        <OpenGraphPreviewCard pageUrl={payload.url} og={payload.openGraph} />
-      </div>
+      <section className="space-y-4" aria-labelledby="audit-details-heading">
+        <h3
+          id="audit-details-heading"
+          className="text-lg font-semibold tracking-tight text-white"
+        >
+          Détails
+        </h3>
+        {!bentoRight ? (
+          <DesignChecklistPanel
+            checks={payload.designChecks}
+            className="min-h-[280px] lg:min-h-[360px]"
+          />
+        ) : (
+          <div className="grid gap-6 lg:grid-cols-2 lg:items-stretch lg:gap-5">
+            <div className="flex h-full min-h-[280px] min-w-0 lg:min-h-[360px]">
+              <DesignChecklistPanel checks={payload.designChecks} className="w-full" />
+            </div>
+            <div className="flex h-full min-h-0 flex-col gap-6 lg:gap-5">
+              {hasOg ? (
+                <OpenGraphPreviewCard pageUrl={payload.url} og={payload.openGraph} />
+              ) : null}
+              {hasBlocking ? (
+                <BlockingPointsPanel points={payload.blockingPoints} className="min-h-0 flex-1" />
+              ) : null}
+            </div>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

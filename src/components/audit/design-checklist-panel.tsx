@@ -2,11 +2,16 @@ import type { DesignCheckItem } from "@/types/audit";
 import { Check, Circle } from "lucide-react";
 import { GlassCard } from "@/components/ui/glass-card";
 
-export function DesignChecklistPanel({ checks }: { checks: DesignCheckItem[] }) {
+type DesignChecklistPanelProps = {
+  checks: DesignCheckItem[];
+  className?: string;
+};
+
+export function DesignChecklistPanel({ checks, className = "" }: DesignChecklistPanelProps) {
   return (
-    <GlassCard className="p-6 sm:p-7">
-      <h3 className="text-lg font-semibold text-white">Design &amp; UX — contrôles</h3>
-      <ul className="mt-5 space-y-4">
+    <GlassCard className={`flex h-full min-h-0 flex-col p-6 sm:p-7 ${className}`}>
+      <h3 className="shrink-0 text-lg font-semibold text-white">Design &amp; UX — contrôles</h3>
+      <ul className="mt-5 flex-1 space-y-4 overflow-y-auto pr-1 [scrollbar-gutter:stable]">
         {checks.map((c) => (
           <li key={c.id} className="flex gap-3">
             <span className="mt-0.5 shrink-0 text-cyan-400">

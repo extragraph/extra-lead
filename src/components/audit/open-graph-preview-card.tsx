@@ -9,9 +9,10 @@ import { useMemo, useState } from "react";
 type Props = {
   pageUrl: string;
   og: OpenGraphPreview;
+  className?: string;
 };
 
-export function OpenGraphPreviewCard({ pageUrl, og }: Props) {
+export function OpenGraphPreviewCard({ pageUrl, og, className = "" }: Props) {
   const [imgError, setImgError] = useState(false);
   const hostname = useMemo(() => {
     try {
@@ -28,7 +29,7 @@ export function OpenGraphPreviewCard({ pageUrl, og }: Props) {
   const desc = og.description?.trim() || null;
 
   return (
-    <GlassCard variant="strong" className="overflow-hidden p-0">
+    <GlassCard variant="strong" className={`shrink-0 overflow-hidden p-0 ${className}`}>
       <div className="flex items-center gap-2 border-b border-white/10 px-5 py-3">
         <Share2 className="h-4 w-4 text-violet-400" strokeWidth={1.75} />
         <h3 className="text-sm font-semibold text-white">Aperçu de partage (Open Graph)</h3>
