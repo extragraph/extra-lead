@@ -1,0 +1,74 @@
+"use client";
+
+import { AuditResults } from "@/components/audit/audit-results";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { FeaturePreviewRow } from "@/components/dashboard/feature-preview-row";
+import { UrlScannerCard } from "@/components/dashboard/url-scanner-card";
+import type { AuditPayload } from "@/types/audit";
+import { useState } from "react";
+
+export function AuditDashboard() {
+  const [audit, setAudit] = useState<AuditPayload | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function runScan(url: string) {
+    setAudit(null);
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await fetch("/api/audit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const data = (await res.json()) as { error?: string } & Partial<AuditPayload>;
+      if (!res.ok) {
+        setError(data.error || "Erreur lors de l’audit.");
+        return;
+      }
+      if (!data.scores || !data.url || data.openGraph == null) {
+        setError("Réponse invalide.");
+        return;
+      }
+      setAudit(data as AuditPayload);
+    } catch {
+      setError("Impossible de contacter le serveur.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="extralead-bg relative min-h-screen overflow-hidden">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.35]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }}
+      />
+
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-4xl flex-col px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        <DashboardHeader />
+
+        <main className="mt-12 flex flex-1 flex-col gap-10">
+          <UrlScannerCard onScan={runScan} loading={loading} />
+          {error && (
+            <p
+              className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200"
+              role="alert"
+            >
+              {error}
+            </p>
+          )}
+          {audit && <AuditResults key={`${audit.url}-${audit.auditedAt}`} payload={audit} />}
+          {!audit && <FeaturePreviewRow />}
+        </main>
+
+        <footer className="mt-auto pt-16 text-center text-xs text-zinc-600">
+          Extra-Lead — PageSpeed si clé Google configurée, sinon scores simulés pour la démo.
+        </footer>
+      </div>
+    </div>
+  );
+}
