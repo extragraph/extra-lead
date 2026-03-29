@@ -7,6 +7,7 @@ import { fetchPageHtml } from "./html-fetch";
 import { buildOpleadBlock } from "./oplead";
 import { fetchPageSpeedScores, mergeWithDesignScore } from "./pagespeed";
 import { simulateBasicFormFallback, simulatePageSpeedScores } from "./simulate";
+import { getGooglePageSpeedKey, getGooglePlacesKey } from "@/lib/env/google-api-keys";
 import { normalizeAuditUrl } from "./url-allowlist";
 
 function blockingFromScoresAndDesign(
@@ -44,7 +45,7 @@ export async function runAudit(
     return { ok: false, status: 400, message: "URL invalide ou non autorisée." };
   }
 
-  const apiKey = process.env.GOOGLE_PAGESPEED_API_KEY?.trim();
+  const apiKey = getGooglePageSpeedKey();
 
   const [html, psi] = await Promise.all([
     fetchPageHtml(url),
@@ -85,7 +86,7 @@ export async function runAudit(
     design.checks.filter((c) => !c.ok).map((c) => c.detail || c.label),
   );
 
-  const placesKey = process.env.GOOGLE_PLACES_API_KEY?.trim();
+  const placesKey = getGooglePlacesKey();
 
   let competitiveComparison = placesKey
     ? await tryBuildCompetitiveFromPlaces({

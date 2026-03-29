@@ -132,9 +132,13 @@ export function UrlScannerCard({ onScan, loading, hasPageSpeedKey = false }: Url
               Sans clé Google, les scores sont{" "}
               <strong className="font-medium text-zinc-400">simulés</strong> (déterministes par URL). Ajoutez{" "}
               <code className="rounded bg-zinc-800 px-1 py-0.5 text-[10px] text-zinc-300">
-                GOOGLE_PAGESPEED_API_KEY
+                GOOGLE_API_KEY
               </code>{" "}
-              pour les mesures réelles.
+              (ou{" "}
+              <code className="rounded bg-zinc-800 px-1 py-0.5 text-[10px] text-zinc-300">
+                GOOGLE_PAGESPEED_API_KEY
+              </code>
+              ) pour les mesures réelles.
             </>
           )}
         </p>

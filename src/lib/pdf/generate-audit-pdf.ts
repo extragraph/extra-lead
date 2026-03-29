@@ -318,6 +318,6 @@ function sourceLabel(audit: AuditPayload): string {
     case "pagespeed_partial":
       return "Scores simulés — clé PageSpeed présente mais appel API en échec";
     default:
-      return "Scores simulés — branchez GOOGLE_PAGESPEED_API_KEY pour les mesures réelles";
+      return "Scores simulés — définissez GOOGLE_API_KEY (ou GOOGLE_PAGESPEED_API_KEY) pour les mesures réelles";
   }
 }

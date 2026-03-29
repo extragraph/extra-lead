@@ -1,6 +1,6 @@
 import { AuditDashboard } from "@/components/dashboard/audit-dashboard";
+import { isGooglePageSpeedConfigured } from "@/lib/env/google-api-keys";
 
 export default function Home() {
-  const hasPageSpeedKey = Boolean(process.env.GOOGLE_PAGESPEED_API_KEY?.trim());
-  return <AuditDashboard hasPageSpeedKey={hasPageSpeedKey} />;
+  return <AuditDashboard hasPageSpeedKey={isGooglePageSpeedConfigured()} />;
 }
