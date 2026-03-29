@@ -1,6 +1,7 @@
 import { normalizeAuditUrl } from "@/lib/audit/url-allowlist";
+import { launchScreenshotBrowser } from "@/lib/screenshot/launch-browser";
 import { NextResponse } from "next/server";
-import puppeteer from "puppeteer";
+import type { Browser } from "puppeteer-core";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,23 +21,10 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "URL invalide ou non autorisée." }, { status: 400 });
   }
 
-  let browser: Awaited<ReturnType<typeof puppeteer.launch>> | undefined;
+  let browser: Browser | undefined;
 
   try {
-    const executablePath =
-      process.env.PUPPETEER_EXECUTABLE_PATH?.trim() || process.env.CHROME_PATH?.trim() || undefined;
-
-    browser = await puppeteer.launch({
-      headless: true,
-      executablePath: executablePath || undefined,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--window-size=390,900",
-        "--disable-features=TranslateUI",
-      ],
-    });
+    browser = await launchScreenshotBrowser();
 
     const page = await browser.newPage();
     await page.setViewport(VIEWPORT);
