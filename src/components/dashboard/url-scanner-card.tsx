@@ -1,27 +1,45 @@
 "use client";
 
-import { Globe, Loader2, ScanLine } from "lucide-react";
+import { Briefcase, Globe, Loader2, MapPin, ScanLine } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { GlassCard } from "@/components/ui/glass-card";
 
-type UrlScannerCardProps = {
-  onScan: (url: string) => void | Promise<void>;
-  loading?: boolean;
+export type UrlScanPayload = {
+  url: string;
+  city?: string;
+  activity?: string;
 };
 
-export function UrlScannerCard({ onScan, loading }: UrlScannerCardProps) {
+type UrlScannerCardProps = {
+  onScan: (payload: UrlScanPayload) => void | Promise<void>;
+  loading?: boolean;
+  /** Défini côté serveur — sans exposer la clé. */
+  hasPageSpeedKey?: boolean;
+};
+
+const inputClass =
+  "h-full min-h-[52px] w-full rounded-xl border border-white/10 bg-zinc-950/60 py-3 text-[15px] text-white placeholder:text-zinc-600 outline-none ring-0 transition focus:border-cyan-500/40 focus:bg-zinc-950/80 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.12)] disabled:opacity-60";
+
+export function UrlScannerCard({ onScan, loading, hasPageSpeedKey = false }: UrlScannerCardProps) {
   const [url, setUrl] = useState("");
+  const [city, setCity] = useState("");
+  const [activity, setActivity] = useState("");
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const trimmed = url.trim();
     if (!trimmed || loading) return;
-    await onScan(trimmed);
+    const payload: UrlScanPayload = { url: trimmed };
+    const c = city.trim();
+    const a = activity.trim();
+    if (c) payload.city = c;
+    if (a) payload.activity = a;
+    await onScan(payload);
   }
 
   return (
     <GlassCard variant="strong" className="p-6 sm:p-8">
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-cyan-500/10 text-cyan-400">
             <ScanLine className="h-5 w-5" strokeWidth={1.75} />
@@ -35,28 +53,65 @@ export function UrlScannerCard({ onScan, loading }: UrlScannerCardProps) {
           </div>
         </div>
 
+        <label className="relative flex min-h-[52px] w-full items-center">
+          <span className="sr-only">URL du site à auditer</span>
+          <Globe
+            className="pointer-events-none absolute left-4 h-5 w-5 text-zinc-500"
+            strokeWidth={1.5}
+          />
+          <input
+            type="url"
+            name="url"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://exemple.fr"
+            autoComplete="url"
+            disabled={loading}
+            className={`${inputClass} pl-12 pr-4`}
+          />
+        </label>
+
         <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
-          <label className="relative flex min-h-[52px] flex-1 items-center">
-            <span className="sr-only">URL du site à auditer</span>
-            <Globe
-              className="pointer-events-none absolute left-4 h-5 w-5 text-zinc-500"
-              strokeWidth={1.5}
-            />
-            <input
-              type="url"
-              name="url"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://exemple.fr"
-              autoComplete="url"
-              disabled={loading}
-              className="h-full min-h-[52px] w-full rounded-xl border border-white/10 bg-zinc-950/60 py-3 pl-12 pr-4 text-[15px] text-white placeholder:text-zinc-600 outline-none ring-0 transition focus:border-cyan-500/40 focus:bg-zinc-950/80 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.12)] disabled:opacity-60"
-            />
-          </label>
+          <div className="flex min-h-[52px] min-w-0 flex-1 flex-row gap-3">
+            <label className="relative flex min-h-[52px] min-w-0 flex-1 items-center">
+              <span className="sr-only">Ville (concurrence locale)</span>
+              <MapPin
+                className="pointer-events-none absolute left-4 h-5 w-5 text-zinc-500"
+                strokeWidth={1.5}
+              />
+              <input
+                type="text"
+                name="city"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="Ville (ex. Lyon)"
+                autoComplete="address-level2"
+                disabled={loading}
+                className={`${inputClass} min-w-0 pl-12 pr-4`}
+              />
+            </label>
+            <label className="relative flex min-h-[52px] min-w-0 flex-1 items-center">
+              <span className="sr-only">Activité ou secteur</span>
+              <Briefcase
+                className="pointer-events-none absolute left-4 h-5 w-5 text-zinc-500"
+                strokeWidth={1.5}
+              />
+              <input
+                type="text"
+                name="activity"
+                value={activity}
+                onChange={(e) => setActivity(e.target.value)}
+                placeholder="Activité (ex. Plomberie)"
+                autoComplete="off"
+                disabled={loading}
+                className={`${inputClass} min-w-0 pl-12 pr-4`}
+              />
+            </label>
+          </div>
           <button
             type="submit"
             disabled={loading || !url.trim()}
-            className="inline-flex min-h-[52px] shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-8 text-sm font-semibold text-white shadow-lg shadow-cyan-500/20 transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+            className="inline-flex min-h-[52px] w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-8 text-sm font-semibold text-white shadow-lg shadow-cyan-500/20 transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 sm:w-auto sm:min-w-[180px]"
           >
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2} />
@@ -68,8 +123,20 @@ export function UrlScannerCard({ onScan, loading }: UrlScannerCardProps) {
         </div>
 
         <p className="text-xs text-zinc-500">
-          Sans clé Google, les scores sont <strong className="font-medium text-zinc-400">simulés</strong>{" "}
-          (déterministes par URL). Ajoutez <code className="rounded bg-zinc-800 px-1 py-0.5 text-[10px] text-zinc-300">GOOGLE_PAGESPEED_API_KEY</code> pour les mesures réelles.
+          <strong className="font-medium text-zinc-400">Ville</strong> et{" "}
+          <strong className="font-medium text-zinc-400">activité</strong> sont optionnels : ils affinent la
+          recherche de concurrents (Google Places) et le tableau comparatif.
+          {!hasPageSpeedKey && (
+            <>
+              {" "}
+              Sans clé Google, les scores sont{" "}
+              <strong className="font-medium text-zinc-400">simulés</strong> (déterministes par URL). Ajoutez{" "}
+              <code className="rounded bg-zinc-800 px-1 py-0.5 text-[10px] text-zinc-300">
+                GOOGLE_PAGESPEED_API_KEY
+              </code>{" "}
+              pour les mesures réelles.
+            </>
+          )}
         </p>
       </form>
     </GlassCard>

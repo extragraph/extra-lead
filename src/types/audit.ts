@@ -1,5 +1,11 @@
 /** Types partagés pour les audits — PageSpeed, checks UX & OPLead. */
 
+/** Contexte local optionnel (formulaire) — affine Places et les libellés concurrents. */
+export interface AuditLocalContext {
+  city?: string;
+  activity?: string;
+}
+
 export type AuditCategoryId = "performance" | "seo" | "accessibility" | "design";
 
 export type AuditDataSource = "pagespeed" | "simulated" | "pagespeed_partial";
@@ -57,7 +63,7 @@ export interface AuditPayload {
   designChecks: DesignCheckItem[];
   /** Aperçu partage social — renseigné si le HTML a été chargé */
   openGraph: OpenGraphPreview;
-  /** Comparaison concurrentielle (simulation démo) — absent si réponse / état obsolète */
+  /** Comparaison concurrentielle (Google Places + audit ou simulation si pas de clé) */
   competitiveComparison?: CompetitiveComparisonPayload;
   blockingPoints: string[];
   oplead: {

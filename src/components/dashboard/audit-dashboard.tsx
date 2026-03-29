@@ -7,12 +7,12 @@ import { UrlScannerCard } from "@/components/dashboard/url-scanner-card";
 import type { AuditPayload } from "@/types/audit";
 import { useState } from "react";
 
-export function AuditDashboard() {
+export function AuditDashboard({ hasPageSpeedKey = false }: { hasPageSpeedKey?: boolean }) {
   const [audit, setAudit] = useState<AuditPayload | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function runScan(url: string) {
+  async function runScan(payload: { url: string; city?: string; activity?: string }) {
     setAudit(null);
     setError(null);
     setLoading(true);
@@ -20,7 +20,11 @@ export function AuditDashboard() {
       const res = await fetch("/api/audit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({
+          url: payload.url,
+          ...(payload.city ? { city: payload.city } : {}),
+          ...(payload.activity ? { activity: payload.activity } : {}),
+        }),
       });
       const data = (await res.json()) as { error?: string } & Partial<AuditPayload>;
       if (!res.ok) {
@@ -52,7 +56,7 @@ export function AuditDashboard() {
         <DashboardHeader />
 
         <main className="mt-12 flex flex-1 flex-col gap-10">
-          <UrlScannerCard onScan={runScan} loading={loading} />
+          <UrlScannerCard onScan={runScan} loading={loading} hasPageSpeedKey={hasPageSpeedKey} />
           {error && (
             <p
               className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200"

@@ -1,4 +1,5 @@
 import type {
+  AuditLocalContext,
   AuditScoreSlice,
   ComparisonTier,
   CompetitiveComparisonPayload,
@@ -68,13 +69,13 @@ const FIRST_NAMES = [
 
 const BRAND_SUFFIXES = ["Pro", "Plus", "Services", "Expert", "Sud", "Ouest", "Habitat", "Artisans"];
 
-function tierFromScore(score: number, labels: { g: string; o: string; r: string }): ComparisonTier {
+export function tierFromScore(score: number, labels: { g: string; o: string; r: string }): ComparisonTier {
   if (score >= 75) return { level: "green", label: labels.g };
   if (score >= 50) return { level: "orange", label: labels.o };
   return { level: "red", label: labels.r };
 }
 
-function detectCity(html: string | null, seed: number): string {
+export function detectCity(html: string | null, seed: number): string {
   if (html) {
     const text = html.replace(/\s+/g, " ").slice(0, 80_000);
     for (const city of FRENCH_CITIES) {
@@ -102,7 +103,7 @@ function detectCity(html: string | null, seed: number): string {
   return FRENCH_CITIES[seed % FRENCH_CITIES.length];
 }
 
-function detectSector(html: string | null, url: string, seed: number): string {
+export function detectSector(html: string | null, url: string, seed: number): string {
   const blob = `${html || ""} ${url}`.toLowerCase();
   for (const rule of SECTOR_RULES) {
     if (rule.pattern.test(blob)) return rule.label;
@@ -144,59 +145,28 @@ function levelOrder(l: ComparisonTierLevel): number {
   return 1;
 }
 
-function applyPenalty(
-  prospect: CompetitorComparisonRow,
-  competitors: CompetitorComparisonRow[],
-): void {
-  const keys: (keyof Pick<CompetitorComparisonRow, "performance" | "design" | "conversion" | "mobile">)[] = [
-    "performance",
-    "design",
-    "conversion",
-    "mobile",
-  ];
-
-  for (const key of keys) {
-    if (prospect[key].level === "red") {
-      const target = competitors[0];
-      if (levelOrder(target[key].level) < 3) {
-        if (key === "performance") {
-          target.performance = { level: "green", label: "Très rapide (réf. locale)" };
-        } else if (key === "design") {
-          target.design = { level: "green", label: "Identité soignée" };
-        } else if (key === "conversion") {
-          target.conversion = {
-            level: "green",
-            label: "RDV en ligne + synchro CRM (OPLead)",
-          };
-        } else {
-          target.mobile = { level: "green", label: "100 % mobile-first" };
-        }
-      }
-      return;
-    }
-  }
-
-  competitors[0].conversion = {
-    level: "green",
-    label: "Prise de RDV en ligne + OPLead (réf. locale simulée)",
-  };
-  prospect.conversion = {
-    level: "red",
-    label: "Objectif benchmark : structurer prise de RDV & CRM (OPLead)",
-  };
-}
-
-export function buildCompetitiveSimulation(
+export function buildPlacesTextQuery(
   url: string,
   html: string | null,
+  seed: number,
+  local?: AuditLocalContext | null,
+): string {
+  const city = local?.city?.trim() || detectCity(html, seed);
+  const act = local?.activity?.trim();
+  if (act) {
+    return `${act} ${city} France`.replace(/\s+/g, " ").trim();
+  }
+  const sector = detectSector(html, url, seed);
+  const short = SECTOR_RULES.find((r) => r.label === sector)?.short ?? "services";
+  return `${short} ${city} France`;
+}
+
+export function buildProspectComparisonRow(
+  url: string,
   scores: AuditScoreSlice[],
   designChecks: DesignCheckItem[],
   basicFormPitch: boolean,
-): CompetitiveComparisonPayload {
-  const seed = hashString(url);
-  const city = detectCity(html, seed);
-  const sector = detectSector(html, url, seed);
-
+): CompetitorComparisonRow {
   const perf = scores.find((s) => s.id === "performance")?.score ?? 0;
   const design = scores.find((s) => s.id === "design")?.score ?? 0;
   const responsiveOk = designChecks.find((c) => c.id === "responsive")?.ok ?? false;
@@ -238,7 +208,7 @@ export function buildCompetitiveSimulation(
     }
   })();
 
-  const prospect: CompetitorComparisonRow = {
+  return {
     id: "prospect",
     name: "Votre site (audité)",
     urlLabel: host,
@@ -248,9 +218,71 @@ export function buildCompetitiveSimulation(
     conversion,
     mobile,
   };
+}
+
+export function applyPenalty(
+  prospect: CompetitorComparisonRow,
+  competitors: CompetitorComparisonRow[],
+  options?: { places?: boolean },
+): void {
+  const keys: (keyof Pick<CompetitorComparisonRow, "performance" | "design" | "conversion" | "mobile">)[] = [
+    "performance",
+    "design",
+    "conversion",
+    "mobile",
+  ];
+
+  for (const key of keys) {
+    if (prospect[key].level === "red") {
+      const target = competitors[0];
+      if (levelOrder(target[key].level) < 3) {
+        if (key === "performance") {
+          target.performance = { level: "green", label: "Très rapide (réf. locale)" };
+        } else if (key === "design") {
+          target.design = { level: "green", label: "Identité soignée" };
+        } else if (key === "conversion") {
+          target.conversion = {
+            level: "green",
+            label: "RDV en ligne + synchro CRM (OPLead)",
+          };
+        } else {
+          target.mobile = { level: "green", label: "100 % mobile-first" };
+        }
+      }
+      return;
+    }
+  }
+
+  competitors[0].conversion = {
+    level: "green",
+    label: options?.places
+      ? "Prise de RDV en ligne + OPLead (réf. locale)"
+      : "Prise de RDV en ligne + OPLead (réf. locale simulée)",
+  };
+  prospect.conversion = {
+    level: "red",
+    label: "Objectif benchmark : structurer prise de RDV & CRM (OPLead)",
+  };
+}
+
+export function buildCompetitiveSimulation(
+  url: string,
+  html: string | null,
+  scores: AuditScoreSlice[],
+  designChecks: DesignCheckItem[],
+  basicFormPitch: boolean,
+  local?: AuditLocalContext | null,
+): CompetitiveComparisonPayload {
+  const seed = hashString(url);
+  const city = local?.city?.trim() || detectCity(html, seed);
+  const sector = local?.activity?.trim() || detectSector(html, url, seed);
+
+  const prospect = buildProspectComparisonRow(url, scores, designChecks, basicFormPitch);
 
   const sectorShort =
-    SECTOR_RULES.find((r) => r.label === sector)?.short || "Services";
+    SECTOR_RULES.find((r) => r.label === sector)?.short ||
+    (local?.activity?.trim() ? local.activity.trim().slice(0, 28) : null) ||
+    "Services";
 
   const competitors: CompetitorComparisonRow[] = [];
   for (let i = 0; i < 3; i++) {

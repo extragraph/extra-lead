@@ -1,5 +1,6 @@
-import type { AuditDataSource, AuditPayload, AuditScoreSlice } from "@/types/audit";
+import type { AuditDataSource, AuditLocalContext, AuditPayload, AuditScoreSlice } from "@/types/audit";
 import { buildCompetitiveSimulation } from "./competitive-simulation";
+import { tryBuildCompetitiveFromPlaces } from "./places-competitive";
 import { analyzeDesignFromHtml } from "./design-checks";
 import { detectBasicContactForm } from "./form-detection";
 import { fetchPageHtml } from "./html-fetch";
@@ -22,10 +23,22 @@ function blockingFromScoresAndDesign(
   return [...new Set(out)].slice(0, 12);
 }
 
-export async function runAudit(rawUrl: string): Promise<
+function normalizeLocalContext(raw: AuditLocalContext | null | undefined): AuditLocalContext | undefined {
+  if (!raw) return undefined;
+  const city = raw.city?.trim();
+  const activity = raw.activity?.trim();
+  if (!city && !activity) return undefined;
+  return { ...(city ? { city } : {}), ...(activity ? { activity } : {}) };
+}
+
+export async function runAudit(
+  rawUrl: string,
+  localContext?: AuditLocalContext | null,
+): Promise<
   | { ok: true; payload: AuditPayload }
   | { ok: false; status: number; message: string }
 > {
+  const local = normalizeLocalContext(localContext);
   const url = normalizeAuditUrl(rawUrl);
   if (!url) {
     return { ok: false, status: 400, message: "URL invalide ou non autorisée." };
@@ -72,13 +85,31 @@ export async function runAudit(rawUrl: string): Promise<
     design.checks.filter((c) => !c.ok).map((c) => c.detail || c.label),
   );
 
-  const competitiveComparison = buildCompetitiveSimulation(
-    url,
-    html,
-    scores,
-    design.checks,
-    basicForm,
-  );
+  const placesKey = process.env.GOOGLE_PLACES_API_KEY?.trim();
+
+  let competitiveComparison = placesKey
+    ? await tryBuildCompetitiveFromPlaces({
+        prospectUrl: url,
+        html,
+        scores,
+        designChecks: design.checks,
+        basicFormPitch: basicForm,
+        pageSpeedKey: apiKey,
+        placesKey,
+        local,
+      })
+    : null;
+
+  if (!competitiveComparison) {
+    competitiveComparison = buildCompetitiveSimulation(
+      url,
+      html,
+      scores,
+      design.checks,
+      basicForm,
+      local,
+    );
+  }
 
   const payload: AuditPayload = {
     url,
