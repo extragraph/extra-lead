@@ -1,18 +1,23 @@
 "use client";
 
 import { AuditResults } from "@/components/audit/audit-results";
+import { AuditSoundToggle } from "@/components/dashboard/audit-sound-toggle";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { FeaturePreviewRow } from "@/components/dashboard/feature-preview-row";
 import { UrlScannerCard } from "@/components/dashboard/url-scanner-card";
 import type { AuditPayload } from "@/types/audit";
-import { useState } from "react";
+import { playAuditReadyChime, primeAuditSoundContext } from "@/lib/sounds/audit-ready-chime";
+import { readAuditSoundPreference } from "@/lib/sounds/audit-sound-preference";
+import { useRef, useState } from "react";
 
 export function AuditDashboard({ hasPageSpeedKey = false }: { hasPageSpeedKey?: boolean }) {
   const [audit, setAudit] = useState<AuditPayload | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
 
   async function runScan(payload: { url: string; city?: string; activity?: string }) {
+    audioCtxRef.current = primeAuditSoundContext(audioCtxRef.current);
     setAudit(null);
     setError(null);
     setLoading(true);
@@ -36,6 +41,9 @@ export function AuditDashboard({ hasPageSpeedKey = false }: { hasPageSpeedKey?: 
         return;
       }
       setAudit(data as AuditPayload);
+      if (readAuditSoundPreference()) {
+        playAuditReadyChime(audioCtxRef.current);
+      }
     } catch {
       setError("Impossible de contacter le serveur.");
     } finally {
@@ -56,6 +64,9 @@ export function AuditDashboard({ hasPageSpeedKey = false }: { hasPageSpeedKey?: 
         <DashboardHeader />
 
         <main className="mt-12 flex flex-1 flex-col gap-10">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+            <AuditSoundToggle />
+          </div>
           <UrlScannerCard onScan={runScan} loading={loading} hasPageSpeedKey={hasPageSpeedKey} />
           {error && (
             <p
