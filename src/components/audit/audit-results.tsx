@@ -11,7 +11,7 @@ import { GlobalScoreSummary } from "@/components/audit/global-score-summary";
 import { LocalCompetitorsSection } from "@/components/audit/local-competitors-section";
 import { SiteScreenshotCard } from "@/components/audit/site-screenshot-card";
 import { GlassCard } from "@/components/ui/glass-card";
-import { getGlobalAverage, letterGradeFromAverage } from "@/lib/score-grade";
+import { buildImprovementSuggestions } from "@/lib/audit/improvement-suggestions";
 import { AlertCircle } from "lucide-react";
 
 function IntegrationHintsPanel({ hints }: { hints: string[] }) {
@@ -59,8 +59,7 @@ function SourceBadge({ payload }: { payload: AuditPayload }) {
 }
 
 export function AuditResults({ payload }: { payload: AuditPayload }) {
-  const globalAvg = getGlobalAverage(payload.scores);
-  const letter = letterGradeFromAverage(globalAvg);
+  const improvementSuggestions = buildImprovementSuggestions(payload);
   const hasOg = payload.openGraph.present;
   const hasBlocking = payload.blockingPoints.length > 0;
   const bentoRight = hasOg || hasBlocking;
@@ -85,12 +84,8 @@ export function AuditResults({ payload }: { payload: AuditPayload }) {
       )}
 
       <div className="grid gap-6 lg:grid-cols-2 lg:items-stretch">
-        <SiteScreenshotCard
-          pageUrl={payload.url}
-          letter={letter}
-          average={globalAvg}
-        />
-        <GlobalScoreSummary scores={payload.scores} />
+        <SiteScreenshotCard pageUrl={payload.url} />
+        <GlobalScoreSummary scores={payload.scores} suggestions={improvementSuggestions} />
       </div>
 
       <GlassCard variant="strong" className="p-6 sm:p-8">

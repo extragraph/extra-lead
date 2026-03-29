@@ -1,24 +1,19 @@
 "use client";
 
-import { gradeBadgeClass, gradeTone } from "@/lib/score-grade";
 import { GlassCard } from "@/components/ui/glass-card";
 import { ImageOff, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 type Props = {
   pageUrl: string;
-  letter: string;
-  average: number;
 };
 
-export function SiteScreenshotCard({ pageUrl, letter, average }: Props) {
+export function SiteScreenshotCard({ pageUrl }: Props) {
   const [loadState, setLoadState] = useState<"loading" | "ok" | "error">("loading");
   const [imageDecoded, setImageDecoded] = useState(false);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const blobUrlRef = useRef<string | null>(null);
-  const tone = gradeTone(letter);
-  const badgeClass = gradeBadgeClass(tone);
 
   useEffect(() => {
     let cancelled = false;
@@ -150,15 +145,6 @@ export function SiteScreenshotCard({ pageUrl, letter, average }: Props) {
               }}
             />
           )}
-
-          <div
-            className={`pointer-events-none absolute left-4 top-4 z-20 flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-bold shadow-xl backdrop-blur-sm ${badgeClass}`}
-          >
-            <span className="text-[11px] font-semibold uppercase tracking-wider opacity-90">
-              Score {letter}
-            </span>
-            <span className="tabular-nums">— {average}/100</span>
-          </div>
         </div>
       </div>
     </GlassCard>
