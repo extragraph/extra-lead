@@ -6,8 +6,10 @@ import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { FeaturePreviewRow } from "@/components/dashboard/feature-preview-row";
 import { UrlScannerCard } from "@/components/dashboard/url-scanner-card";
 import type { AuditPayload } from "@/types/audit";
-import { playAuditReadyChime, primeAuditSoundContext } from "@/lib/sounds/audit-ready-chime";
+import { primeAuditSoundContext, playAuditReadyChime } from "@/lib/sounds/audit-ready-chime";
 import { readAuditSoundPreference } from "@/lib/sounds/audit-sound-preference";
+import { HistorySidebar } from "@/components/dashboard/history-sidebar";
+import { saveAudit } from "@/lib/audit/history-store";
 import { useRef, useState } from "react";
 
 export function AuditDashboard({ hasPageSpeedKey = false }: { hasPageSpeedKey?: boolean }) {
@@ -41,6 +43,8 @@ export function AuditDashboard({ hasPageSpeedKey = false }: { hasPageSpeedKey?: 
         return;
       }
       setAudit(data as AuditPayload);
+      saveAudit(data as AuditPayload).catch(console.error);
+      
       if (readAuditSoundPreference()) {
         playAuditReadyChime(audioCtxRef.current);
       }
@@ -61,6 +65,7 @@ export function AuditDashboard({ hasPageSpeedKey = false }: { hasPageSpeedKey?: 
       />
 
       <div className="relative z-10 mx-auto flex min-h-screen max-w-4xl flex-col px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        <HistorySidebar onSelectAudit={setAudit} />
         <DashboardHeader />
 
         <main className="mt-12 flex flex-1 flex-col gap-10">

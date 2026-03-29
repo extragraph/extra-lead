@@ -50,7 +50,7 @@ export function GlobalScoreSummary({ scores, suggestions }: Props) {
         <p className="mt-4 text-sm leading-relaxed text-zinc-400">
           Score pondéré : Performance et SEO comptent davantage (impact fort sur le
           référencement), puis Accessibilité et Design &amp; UX. La lettre résume la santé globale
-          du site pour votre pitch commercial.
+          du site.
         </p>
       </div>
 

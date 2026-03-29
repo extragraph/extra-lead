@@ -30,6 +30,11 @@ export interface OpenGraphPreview {
   imageUrl?: string | null;
 }
 
+export interface GeoVisibility {
+  hasLlmsTxt: boolean;
+  robotsTxtBlocksAI: boolean | null;
+}
+
 export type ComparisonTierLevel = "green" | "orange" | "red";
 
 export interface ComparisonTier {
@@ -63,6 +68,8 @@ export interface AuditPayload {
   designChecks: DesignCheckItem[];
   /** Aperçu partage social — renseigné si le HTML a été chargé */
   openGraph: OpenGraphPreview;
+  /** Etat de visibilité pour les IAs (GEO) */
+  geoVisibility?: GeoVisibility;
   /** Comparaison concurrentielle (Google Places + audit ou simulation si pas de clé) */
   competitiveComparison?: CompetitiveComparisonPayload;
   blockingPoints: string[];

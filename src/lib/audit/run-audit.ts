@@ -11,10 +11,11 @@ import { analyzeDesignFromHtml } from "./design-checks";
 import { detectBasicContactForm } from "./form-detection";
 import { fetchPageHtml } from "./html-fetch";
 import { buildOpleadBlock } from "./oplead";
+import { getGooglePageSpeedKey, getGooglePlacesKey } from "@/lib/env/google-api-keys";
 import { fetchPageSpeedScores, mergeWithDesignScore } from "./pagespeed";
 import { simulateBasicFormFallback, simulatePageSpeedScores } from "./simulate";
-import { getGooglePageSpeedKey, getGooglePlacesKey } from "@/lib/env/google-api-keys";
 import { normalizeAuditUrl } from "./url-allowlist";
+import { checkGeoVisibility } from "./geo-checks";
 
 function blockingFromScoresAndDesign(
   scores: { id: string; score: number }[],
@@ -53,9 +54,10 @@ export async function runAudit(
 
   const apiKey = getGooglePageSpeedKey();
 
-  const [html, psi] = await Promise.all([
+  const [html, psi, geoVisibility] = await Promise.all([
     fetchPageHtml(url),
     apiKey ? fetchPageSpeedScores(url, apiKey) : Promise.resolve({ ok: false as const, error: "no-key" }),
+    checkGeoVisibility(url),
   ]);
 
   const viewportOk =
@@ -147,9 +149,10 @@ export async function runAudit(
     scores,
     designChecks: design.checks,
     openGraph: design.openGraph,
+    geoVisibility,
     competitiveComparison,
     blockingPoints: blocking,
-    oplead: buildOpleadBlock(basicForm, detectedFromHtml),
+    oplead: buildOpleadBlock(basicForm, detectedFromHtml, local?.activity),
     ...(integrationHints.length > 0 ? { integrationHints } : {}),
   };
 

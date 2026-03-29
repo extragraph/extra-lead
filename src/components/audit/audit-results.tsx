@@ -10,6 +10,7 @@ import { OpenGraphPreviewCard } from "@/components/audit/open-graph-preview-card
 import { GlobalScoreSummary } from "@/components/audit/global-score-summary";
 import { LocalCompetitorsSection } from "@/components/audit/local-competitors-section";
 import { SiteScreenshotCard } from "@/components/audit/site-screenshot-card";
+import { GeoVisibilityPanel } from "@/components/audit/geo-visibility-panel";
 import { GlassCard } from "@/components/ui/glass-card";
 import { buildImprovementSuggestions } from "@/lib/audit/improvement-suggestions";
 import { AlertCircle } from "lucide-react";
@@ -87,6 +88,8 @@ export function AuditResults({ payload }: { payload: AuditPayload }) {
         <SiteScreenshotCard pageUrl={payload.url} />
         <GlobalScoreSummary scores={payload.scores} suggestions={improvementSuggestions} />
       </div>
+
+      <GeoVisibilityPanel geo={payload.geoVisibility} />
 
       <GlassCard variant="strong" className="p-6 sm:p-8">
         <p className="mb-6 text-sm text-zinc-400">
