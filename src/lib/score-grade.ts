@@ -1,10 +1,34 @@
-import type { AuditScoreSlice } from "@/types/audit";
+import type { AuditCategoryId, AuditScoreSlice } from "@/types/audit";
 
-/** Moyenne arithmétique des scores catégories (0–100). */
+/**
+ * Pondération du score global : la performance (Core Web Vitals) et le SEO
+ * pèsent davantage, aligné avec l’impact attendu sur le référencement.
+ * Somme = 1.
+ */
+export const GLOBAL_SCORE_WEIGHTS: Record<AuditCategoryId, number> = {
+  performance: 0.4,
+  seo: 0.28,
+  accessibility: 0.16,
+  design: 0.16,
+};
+
+/** Moyenne pondérée des scores catégories (0–100). */
 export function getGlobalAverage(scores: AuditScoreSlice[]): number {
   if (scores.length === 0) return 0;
-  const sum = scores.reduce((acc, s) => acc + s.score, 0);
-  return Math.round(sum / scores.length);
+  let acc = 0;
+  let wSum = 0;
+  for (const s of scores) {
+    const w = GLOBAL_SCORE_WEIGHTS[s.id];
+    if (w != null) {
+      acc += s.score * w;
+      wSum += w;
+    }
+  }
+  if (wSum === 0) {
+    const sum = scores.reduce((a, x) => a + x.score, 0);
+    return Math.round(sum / scores.length);
+  }
+  return Math.round(acc / wSum);
 }
 
 /** Lettre A–E pour la synthèse globale. */

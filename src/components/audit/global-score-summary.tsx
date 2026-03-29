@@ -48,8 +48,9 @@ export function GlobalScoreSummary({ scores, suggestions }: Props) {
           </div>
         </div>
         <p className="mt-4 text-sm leading-relaxed text-zinc-400">
-          Moyenne des indicateurs Performance, SEO, Accessibilité et Design &amp; UX. La lettre
-          résume la santé globale du site pour votre pitch commercial.
+          Score pondéré : Performance et SEO comptent davantage (impact fort sur le
+          référencement), puis Accessibilité et Design &amp; UX. La lettre résume la santé globale
+          du site pour votre pitch commercial.
         </p>
       </div>
 
