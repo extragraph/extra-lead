@@ -7,7 +7,11 @@ import { DesignChecklistPanel } from "@/components/audit/design-checklist-panel"
 import { ExportAuditPdfButton } from "@/components/audit/export-audit-pdf-button";
 import { OpleadSection } from "@/components/audit/oplead-section";
 import { OpenGraphPreviewCard } from "@/components/audit/open-graph-preview-card";
+import { GlobalScoreSummary } from "@/components/audit/global-score-summary";
+import { LocalCompetitorsSection } from "@/components/audit/local-competitors-section";
+import { SiteScreenshotCard } from "@/components/audit/site-screenshot-card";
 import { GlassCard } from "@/components/ui/glass-card";
+import { getGlobalAverage, letterGradeFromAverage } from "@/lib/score-grade";
 
 function SourceBadge({ payload }: { payload: AuditPayload }) {
   const { dataSource } = payload;
@@ -33,6 +37,9 @@ function SourceBadge({ payload }: { payload: AuditPayload }) {
 }
 
 export function AuditResults({ payload }: { payload: AuditPayload }) {
+  const globalAvg = getGlobalAverage(payload.scores);
+  const letter = letterGradeFromAverage(globalAvg);
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -48,6 +55,15 @@ export function AuditResults({ payload }: { payload: AuditPayload }) {
         </div>
       </div>
 
+      <div className="grid gap-6 lg:grid-cols-2 lg:items-stretch">
+        <SiteScreenshotCard
+          pageUrl={payload.url}
+          letter={letter}
+          average={globalAvg}
+        />
+        <GlobalScoreSummary scores={payload.scores} />
+      </div>
+
       <GlassCard variant="strong" className="p-6 sm:p-8">
         <p className="mb-6 text-sm text-zinc-400">
           Jauges synthétiques — vert &gt; 75, orange 50–74, rouge &lt; 50.
@@ -58,6 +74,10 @@ export function AuditResults({ payload }: { payload: AuditPayload }) {
           ))}
         </div>
       </GlassCard>
+
+      {payload.competitiveComparison && (
+        <LocalCompetitorsSection data={payload.competitiveComparison} />
+      )}
 
       <div
         className={

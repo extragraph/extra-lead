@@ -1,4 +1,5 @@
 import type { AuditDataSource, AuditPayload, AuditScoreSlice } from "@/types/audit";
+import { buildCompetitiveSimulation } from "./competitive-simulation";
 import { analyzeDesignFromHtml } from "./design-checks";
 import { detectBasicContactForm } from "./form-detection";
 import { fetchPageHtml } from "./html-fetch";
@@ -71,6 +72,14 @@ export async function runAudit(rawUrl: string): Promise<
     design.checks.filter((c) => !c.ok).map((c) => c.detail || c.label),
   );
 
+  const competitiveComparison = buildCompetitiveSimulation(
+    url,
+    html,
+    scores,
+    design.checks,
+    basicForm,
+  );
+
   const payload: AuditPayload = {
     url,
     auditedAt: new Date().toISOString(),
@@ -78,6 +87,7 @@ export async function runAudit(rawUrl: string): Promise<
     scores,
     designChecks: design.checks,
     openGraph: design.openGraph,
+    competitiveComparison,
     blockingPoints: blocking,
     oplead: buildOpleadBlock(basicForm, detectedFromHtml),
   };

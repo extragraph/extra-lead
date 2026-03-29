@@ -24,6 +24,31 @@ export interface OpenGraphPreview {
   imageUrl?: string | null;
 }
 
+export type ComparisonTierLevel = "green" | "orange" | "red";
+
+export interface ComparisonTier {
+  level: ComparisonTierLevel;
+  label: string;
+}
+
+export interface CompetitorComparisonRow {
+  id: string;
+  name: string;
+  urlLabel: string;
+  isProspect: boolean;
+  performance: ComparisonTier;
+  design: ComparisonTier;
+  conversion: ComparisonTier;
+  mobile: ComparisonTier;
+}
+
+export interface CompetitiveComparisonPayload {
+  sectorLabel: string;
+  cityLabel: string;
+  disclaimer: string;
+  rows: CompetitorComparisonRow[];
+}
+
 export interface AuditPayload {
   url: string;
   auditedAt: string;
@@ -32,6 +57,8 @@ export interface AuditPayload {
   designChecks: DesignCheckItem[];
   /** Aperçu partage social — renseigné si le HTML a été chargé */
   openGraph: OpenGraphPreview;
+  /** Comparaison concurrentielle (simulation démo) — absent si réponse / état obsolète */
+  competitiveComparison?: CompetitiveComparisonPayload;
   blockingPoints: string[];
   oplead: {
     headline: string;
