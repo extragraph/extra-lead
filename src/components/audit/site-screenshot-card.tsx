@@ -13,6 +13,7 @@ type Props = {
 
 export function SiteScreenshotCard({ pageUrl, letter, average }: Props) {
   const [loadState, setLoadState] = useState<"loading" | "ok" | "error">("loading");
+  const [imageDecoded, setImageDecoded] = useState(false);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const blobUrlRef = useRef<string | null>(null);
@@ -31,6 +32,7 @@ export function SiteScreenshotCard({ pageUrl, letter, average }: Props) {
 
     const run = async () => {
       setLoadState("loading");
+      setImageDecoded(false);
       setErrorDetail(null);
       revokeCurrent();
       setBlobUrl(null);
@@ -101,12 +103,14 @@ export function SiteScreenshotCard({ pageUrl, letter, average }: Props) {
 
       <div className="relative bg-zinc-950/50 p-4 sm:p-5">
         <div
-          className={`relative overflow-hidden rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.65),0_0_0_1px_rgba(255,255,255,0.06)] ring-1 ring-white/10 ${loadState === "ok" ? "opacity-100" : "min-h-[280px]"}`}
+          className={`relative overflow-hidden rounded-2xl bg-zinc-900/40 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.65),0_0_0_1px_rgba(255,255,255,0.06)] ring-1 ring-white/10 ${loadState === "ok" ? "opacity-100" : "min-h-[280px]"}`}
         >
-          {loadState === "loading" && (
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-zinc-900/80">
+          {(loadState === "loading" || (loadState === "ok" && blobUrl && !imageDecoded)) && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-zinc-900/90">
               <Loader2 className="h-8 w-8 animate-spin text-cyan-400" strokeWidth={1.5} />
-              <p className="text-xs text-zinc-500">Génération de la capture…</p>
+              <p className="text-xs text-zinc-500">
+                {loadState === "loading" ? "Génération de la capture…" : "Affichage de l’image…"}
+              </p>
             </div>
           )}
 
@@ -133,7 +137,17 @@ export function SiteScreenshotCard({ pageUrl, letter, average }: Props) {
             <img
               src={blobUrl}
               alt=""
-              className="h-auto w-full object-cover object-top transition duration-500"
+              className={`h-auto w-full object-cover object-top transition duration-500 ${imageDecoded ? "opacity-100" : "opacity-0"}`}
+              onLoad={() => setImageDecoded(true)}
+              onError={() => {
+                if (blobUrlRef.current) {
+                  URL.revokeObjectURL(blobUrlRef.current);
+                  blobUrlRef.current = null;
+                }
+                setBlobUrl(null);
+                setErrorDetail("Impossible d’afficher l’image générée.");
+                setLoadState("error");
+              }}
             />
           )}
 

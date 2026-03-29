@@ -33,16 +33,25 @@ export async function GET(req: Request) {
     );
 
     await page.goto(target, {
-      waitUntil: "domcontentloaded",
-      timeout: 30_000,
+      // « load » attend styles + images de base — évite une capture blanche (domcontentloaded trop tôt).
+      waitUntil: "load",
+      timeout: 35_000,
     });
 
-    await sleep(600);
-    await page.evaluate(() => window.scrollTo(0, 0)).catch(() => {});
+    await sleep(900);
+    await page
+      .evaluate(() => {
+        window.scrollTo(0, 0);
+        return new Promise<void>((resolve) => {
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+        });
+      })
+      .catch(() => {});
 
     const buffer = await page.screenshot({
       type: "png",
       fullPage: false,
+      captureBeyondViewport: false,
     });
 
     if (!buffer || buffer.length < 100) {
