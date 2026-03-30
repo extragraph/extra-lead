@@ -1,4 +1,4 @@
-import type { AuditScoreSlice } from "@/types/audit";
+import type { AuditScoreSlice, DesignAgeEstimate } from "@/types/audit";
 import {
   getGlobalAverage,
   gradeBadgeClass,
@@ -6,14 +6,15 @@ import {
   letterGradeFromAverage,
 } from "@/lib/score-grade";
 import { GlassCard } from "@/components/ui/glass-card";
-import { Lightbulb, TrendingUp } from "lucide-react";
+import { Calendar, Lightbulb, TrendingUp } from "lucide-react";
 
 type Props = {
   scores: AuditScoreSlice[];
   suggestions: string[];
+  designAge?: DesignAgeEstimate | null;
 };
 
-export function GlobalScoreSummary({ scores, suggestions }: Props) {
+export function GlobalScoreSummary({ scores, suggestions, designAge }: Props) {
   const avg = getGlobalAverage(scores);
   const letter = letterGradeFromAverage(avg);
   const tone = gradeTone(letter);
@@ -47,6 +48,22 @@ export function GlobalScoreSummary({ scores, suggestions }: Props) {
       break;
   }
 
+  const ageColor = designAge
+    ? designAge.ageYears >= 5
+      ? "border-rose-500/40 bg-rose-500/10 text-rose-300"
+      : designAge.ageYears >= 3
+        ? "border-amber-500/40 bg-amber-500/10 text-amber-300"
+        : "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+    : null;
+
+  const ageLabel = designAge
+    ? designAge.ageYears >= 5
+      ? "Design obsolète"
+      : designAge.ageYears >= 3
+        ? "Design vieillissant"
+        : "Design récent"
+    : null;
+
   return (
     <GlassCard variant="strong" className={`flex flex-col gap-8 p-6 sm:p-8 transition-colors duration-700 ${cardSkin}`}>
       <div>
@@ -66,6 +83,14 @@ export function GlobalScoreSummary({ scores, suggestions }: Props) {
             <span className="text-lg font-medium text-zinc-500">/100</span>
           </div>
         </div>
+
+        {designAge && ageColor && (
+          <div className={`mt-4 inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium ${ageColor}`}>
+            <Calendar className="h-3.5 w-3.5" strokeWidth={2} />
+            <span>{ageLabel} — conception estimée à <strong>{designAge.estimatedYear}</strong> ({designAge.ageYears} an{designAge.ageYears > 1 ? "s" : ""})</span>
+          </div>
+        )}
+
         <p className="mt-4 text-sm leading-relaxed text-zinc-400">
           Score pondéré : Performance et SEO comptent davantage (impact fort sur le
           référencement), puis Accessibilité et Design &amp; UX. La lettre résume la santé globale
@@ -105,3 +130,4 @@ export function GlobalScoreSummary({ scores, suggestions }: Props) {
     </GlassCard>
   );
 }
+

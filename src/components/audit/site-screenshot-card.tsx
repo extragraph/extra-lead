@@ -6,13 +6,18 @@ import { useEffect, useRef, useState } from "react";
 
 type Props = {
   pageUrl: string;
+  initialScreenshot?: string;
+  onScreenshotCaptured?: (dataUrl: string) => void;
 };
 
-export function SiteScreenshotCard({ pageUrl }: Props) {
-  const [loadState, setLoadState] = useState<"loading" | "ok" | "error">("loading");
-  const [imageDecoded, setImageDecoded] = useState(false);
+export function SiteScreenshotCard({ pageUrl, initialScreenshot, onScreenshotCaptured }: Props) {
+  const [loadState, setLoadState] = useState<"loading" | "ok" | "error">(
+    initialScreenshot ? "ok" : "loading"
+  );
+  const [imageDecoded, setImageDecoded] = useState(initialScreenshot ? true : false);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
-  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [blobUrl, setBlobUrl] = useState<string | null>(initialScreenshot || null);
+
   const blobUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -26,6 +31,12 @@ export function SiteScreenshotCard({ pageUrl }: Props) {
     };
 
     const run = async () => {
+      if (initialScreenshot) {
+        setLoadState("ok");
+        setBlobUrl(initialScreenshot);
+        setImageDecoded(true);
+        return;
+      }
       setLoadState("loading");
       setImageDecoded(false);
       setErrorDetail(null);
@@ -49,8 +60,8 @@ export function SiteScreenshotCard({ pageUrl }: Props) {
           throw new Error(j?.detail || j?.error || `Erreur ${res.status}`);
         }
 
-        if (!ct.includes("png") && !ct.includes("image")) {
-          throw new Error("Le serveur n’a pas renvoyé une image (vérifiez la console serveur).");
+        if (!ct.includes("image")) {
+          throw new Error("Le serveur n'a pas renvoyé une image (vérifiez la console serveur).");
         }
 
         const blob = await res.blob();
@@ -64,6 +75,17 @@ export function SiteScreenshotCard({ pageUrl }: Props) {
         blobUrlRef.current = u;
         setBlobUrl(u);
         setLoadState("ok");
+
+        // Sauvegarder la capture en base64 pour l'historique
+        if (onScreenshotCaptured) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            if (typeof reader.result === "string") {
+              onScreenshotCaptured(reader.result);
+            }
+          };
+          reader.readAsDataURL(blob);
+        }
       } catch (e) {
         if (!cancelled) {
           const msg =
@@ -87,7 +109,7 @@ export function SiteScreenshotCard({ pageUrl }: Props) {
       revokeCurrent();
       setBlobUrl(null);
     };
-  }, [pageUrl]);
+  }, [pageUrl, initialScreenshot]);
 
   return (
     <GlassCard variant="strong" className="overflow-hidden p-0">

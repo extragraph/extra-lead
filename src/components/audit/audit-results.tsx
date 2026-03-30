@@ -84,9 +84,9 @@ export function AuditResults({ payload }: { payload: AuditPayload }) {
       )}
 
       <div className="grid gap-6 lg:grid-cols-2 lg:items-stretch">
-        <SiteScreenshotCard pageUrl={payload.url} />
+        <SiteScreenshotCard pageUrl={payload.url} initialScreenshot={payload.screenshot} />
         <div className="flex flex-col gap-6">
-          <GlobalScoreSummary scores={payload.scores} suggestions={improvementSuggestions} />
+          <GlobalScoreSummary scores={payload.scores} suggestions={improvementSuggestions} designAge={payload.designAge} />
           {hasOg ? <OpenGraphPreviewCard pageUrl={payload.url} og={payload.openGraph} /> : null}
         </div>
       </div>

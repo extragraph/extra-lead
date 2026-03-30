@@ -154,9 +154,11 @@ export async function tryBuildCompetitiveFromPlaces(input: {
   });
 
   const rows: CompetitorComparisonRow[] = [];
-  for (const hit of candidates) {
-    if (rows.length >= MAX_PLACES_COMPETITORS) break;
-    const row = await auditCompetitorPlace(hit, input.pageSpeedKey);
+  const audits = await Promise.all(
+    candidates.slice(0, MAX_PLACES_COMPETITORS).map((hit) => auditCompetitorPlace(hit, input.pageSpeedKey))
+  );
+  
+  for (const row of audits) {
     if (row) rows.push(row);
   }
 

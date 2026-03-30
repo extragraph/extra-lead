@@ -5,7 +5,10 @@ import type {
   AuditScoreSlice,
   CompetitiveComparisonPayload,
 } from "@/types/audit";
-import { buildCompetitiveSimulation } from "./competitive-simulation";
+import {
+  buildCompetitiveSimulation,
+  buildProspectComparisonRow,
+} from "./competitive-simulation";
 import { tryBuildCompetitiveFromPlaces } from "./places-competitive";
 import { analyzeDesignFromHtml } from "./design-checks";
 import { detectBasicContactForm } from "./form-detection";
@@ -16,6 +19,8 @@ import { fetchPageSpeedScores, mergeWithDesignScore } from "./pagespeed";
 import { simulateBasicFormFallback, simulatePageSpeedScores } from "./simulate";
 import { normalizeAuditUrl } from "./url-allowlist";
 import { checkGeoVisibility } from "./geo-checks";
+import { captureScreenshot } from "../screenshot/capture-utils";
+import { estimateDesignAge } from "./design-age";
 
 function blockingFromScoresAndDesign(
   scores: { id: string; score: number }[],
@@ -53,16 +58,53 @@ export async function runAudit(
   }
 
   const apiKey = getGooglePageSpeedKey();
+  const placesKey = getGooglePlacesKey();
 
-  const [html, psi, geoVisibility] = await Promise.all([
-    fetchPageHtml(url),
-    apiKey ? fetchPageSpeedScores(url, apiKey) : Promise.resolve({ ok: false as const, error: "no-key" }),
-    checkGeoVisibility(url),
+  // 1. On lance les tâches qui peuvent démarrer immédiatement
+  const htmlPromise = fetchPageHtml(url);
+  const psiPromise = apiKey 
+    ? fetchPageSpeedScores(url, apiKey) 
+    : Promise.resolve({ ok: false as const, error: "no-key" });
+  const geoVisibilityPromise = checkGeoVisibility(url);
+
+  // 2. Dès que le HTML est là, on lance l'analyse de design et la recherche compétitive
+  const html = await htmlPromise;
+  
+  // Analyse de design locale (synchrone/rapide si on a le HTML)
+  // On ne peut pas savoir si viewport est Ok sans PSI, donc on passera undefined au début
+  const designBaseline = analyzeDesignFromHtml(url, html, undefined);
+  const basicForm = html ? detectBasicContactForm(html) : simulateBasicFormFallback(url);
+  const detectedFromHtml = html ? basicForm : false;
+
+  // LANCEMENT COMPÉTITIF DÈS QUE POSSIBLE
+  // Il ne dépend pas des scores PSI du prospect pour chercher les concurrents !
+  const competitivePromise = (async () => {
+    if (!placesKey) return undefined;
+    
+    const pr = await tryBuildCompetitiveFromPlaces({
+      prospectUrl: url,
+      html,
+      // On passera des scores partiels ou simulés temporairement si besoin, 
+      // mais en réalité tryBuildCompetitiveFromPlaces n'en a besoin que pour la ligne prospect
+      scores: [], // On complétera après
+      designChecks: designBaseline.checks,
+      basicFormPitch: basicForm,
+      pageSpeedKey: apiKey,
+      placesKey,
+      local,
+    });
+    return pr.ok ? pr.payload : undefined;
+  })();
+
+  // 3. On attend le reste
+  const [psi, geoVisibility, competitiveResult] = await Promise.all([
+    psiPromise,
+    geoVisibilityPromise,
+    competitivePromise,
   ]);
 
-  const viewportOk =
-    psi.ok && psi.viewportScore != null ? psi.viewportScore >= 90 : undefined;
-
+  const viewportOk = psi.ok && psi.viewportScore != null ? psi.viewportScore >= 90 : undefined;
+  // Ré-analyse fine si le viewport PSI a changé la donne (rarement impactant sur les chèques mais plus propre)
   const design = analyzeDesignFromHtml(url, html, viewportOk);
 
   let dataSource: AuditDataSource;
@@ -79,67 +121,39 @@ export async function runAudit(
     );
   }
 
-  let basicForm = false;
-  let detectedFromHtml = false;
-  if (html) {
-    basicForm = detectBasicContactForm(html);
-    detectedFromHtml = basicForm;
-  } else {
-    basicForm = simulateBasicFormFallback(url);
-    detectedFromHtml = false;
-  }
-
   const blocking = blockingFromScoresAndDesign(
     scores,
     design.checks.filter((c) => !c.ok).map((c) => c.detail || c.label),
   );
 
-  const placesKey = getGooglePlacesKey();
+  const designAge = estimateDesignAge(html);
+  if (designAge && designAge.ageYears >= 3) {
+    const urgency = designAge.ageYears >= 5
+      ? `Design obsolète (${designAge.estimatedYear}, soit ${designAge.ageYears} ans) — actualisation prioritaire du design et de l'expérience utilisateur.`
+      : `Design vieillissant (${designAge.estimatedYear}, soit ${designAge.ageYears} ans) — une actualisation du design améliorera votre image et vos conversions.`;
+    blocking.unshift(urgency);
+  }
 
   const integrationHints: string[] = [];
 
   if (!apiKey) {
-    integrationHints.push(
-      "Aucune clé Google côté serveur : ajoutez GOOGLE_API_KEY (recommandé) ou GOOGLE_PAGESPEED_API_KEY dans les variables d’environnement du déploiement (ex. Vercel), puis redéployez.",
-    );
+    integrationHints.push("Aucune clé Google côté serveur (PageSpeed).");
   } else if (!psi.ok) {
     integrationHints.push(`PageSpeed : ${psi.error}`);
-    integrationHints.push(
-      "Vérifiez que l’API « PageSpeed Insights API » est activée sur le projet Google Cloud, et que la clé n’est pas restreinte aux seuls référents HTTP navigateur (incompatible avec les appels serveur Vercel).",
-    );
   }
 
-  let competitiveComparison: CompetitiveComparisonPayload | undefined;
-  if (placesKey) {
-    const pr = await tryBuildCompetitiveFromPlaces({
-      prospectUrl: url,
-      html,
-      scores,
-      designChecks: design.checks,
-      basicFormPitch: basicForm,
-      pageSpeedKey: apiKey,
-      placesKey,
-      local,
-    });
-    if (pr.ok) {
-      competitiveComparison = pr.payload;
-    } else {
-      integrationHints.push(`Concurrents (Places) : ${pr.reason}`);
-      integrationHints.push(
-        "Activez « Places API (New) » sur le même projet GCP (facturation). Évitez la restriction de clé « Référents HTTP » pour les appels backend.",
-      );
+  // Finalisation du bloc compétitif (injection des scores réels du prospect)
+  let competitiveComparison = competitiveResult;
+  if (competitiveComparison) {
+    const prospectRow = competitiveComparison.rows.find(r => r.isProspect);
+    if (prospectRow) {
+      // On met à jour la ligne prospect avec les scores finaux (en cas de delta suite au PSI)
+      const updatedProspect = buildProspectComparisonRow(url, scores, design.checks, basicForm);
+      competitiveComparison.rows = [updatedProspect, ...competitiveComparison.rows.filter(r => !r.isProspect)];
     }
-  }
-
-  if (!competitiveComparison) {
-    competitiveComparison = buildCompetitiveSimulation(
-      url,
-      html,
-      scores,
-      design.checks,
-      basicForm,
-      local,
-    );
+  } else {
+    // Si pas de Places, on fait la simulation
+    competitiveComparison = buildCompetitiveSimulation(url, html, scores, design.checks, basicForm, local);
   }
 
   const payload: AuditPayload = {
@@ -150,6 +164,7 @@ export async function runAudit(
     designChecks: design.checks,
     openGraph: design.openGraph,
     geoVisibility,
+    designAge: designAge ?? undefined,
     competitiveComparison,
     blockingPoints: blocking,
     oplead: buildOpleadBlock(basicForm, detectedFromHtml, local?.activity),

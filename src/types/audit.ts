@@ -35,6 +35,13 @@ export interface GeoVisibility {
   robotsTxtBlocksAI: boolean | null;
 }
 
+export interface DesignAgeEstimate {
+  estimatedYear: number;
+  ageYears: number;
+  confidence: "high" | "medium" | "low";
+  signals: string[];
+}
+
 export type ComparisonTierLevel = "green" | "orange" | "red";
 
 export interface ComparisonTier {
@@ -64,12 +71,16 @@ export interface AuditPayload {
   url: string;
   auditedAt: string;
   dataSource: AuditDataSource;
+  /** Image du site capturée au moment de l'audit (Data URL Base64) */
+  screenshot?: string;
   scores: AuditScoreSlice[];
   designChecks: DesignCheckItem[];
   /** Aperçu partage social — renseigné si le HTML a été chargé */
   openGraph: OpenGraphPreview;
   /** Etat de visibilité pour les IAs (GEO) */
   geoVisibility?: GeoVisibility;
+  /** Estimation de l'ancienneté du design */
+  designAge?: DesignAgeEstimate;
   /** Comparaison concurrentielle (Google Places + audit ou simulation si pas de clé) */
   competitiveComparison?: CompetitiveComparisonPayload;
   blockingPoints: string[];
