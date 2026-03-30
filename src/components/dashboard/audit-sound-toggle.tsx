@@ -36,7 +36,7 @@ export function AuditSoundToggle() {
       ) : (
         <VolumeX className="h-3.5 w-3.5 text-zinc-600" strokeWidth={2} aria-hidden />
       )}
-      <span className="text-zinc-300">Son quand le rapport est prêt</span>
+      <span className="whitespace-nowrap text-zinc-300">Son quand le rapport est prêt</span>
       <span id={HINT_ID} className="sr-only">
         {enabled ? "activé" : "désactivé"}, préférence enregistrée sur cet appareil
       </span>

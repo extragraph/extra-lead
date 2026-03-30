@@ -1,6 +1,6 @@
 "use client";
 
-import { Briefcase, Globe, Loader2, MapPin, ScanLine } from "lucide-react";
+import { Briefcase, Globe, Loader2, MapPin, ScanLine, ChevronDown, ChevronUp } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { GlassCard } from "@/components/ui/glass-card";
 
@@ -13,14 +13,15 @@ export type UrlScanPayload = {
 type UrlScannerCardProps = {
   onScan: (payload: UrlScanPayload) => void | Promise<void>;
   loading?: boolean;
-  /** Défini côté serveur — sans exposer la clé. */
   hasPageSpeedKey?: boolean;
+  expanded?: boolean;
+  onToggle?: () => void;
 };
 
 const inputClass =
   "h-full min-h-[52px] w-full rounded-xl border border-white/10 bg-zinc-950/60 py-3 text-[15px] text-white placeholder:text-zinc-600 outline-none ring-0 transition focus:border-cyan-500/40 focus:bg-zinc-950/80 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.12)] disabled:opacity-60";
 
-export function UrlScannerCard({ onScan, loading, hasPageSpeedKey = false }: UrlScannerCardProps) {
+export function UrlScannerCard({ onScan, loading, hasPageSpeedKey = false, expanded = true, onToggle }: UrlScannerCardProps) {
   const [url, setUrl] = useState("");
   const [city, setCity] = useState("");
   const [activity, setActivity] = useState("");
@@ -38,23 +39,42 @@ export function UrlScannerCard({ onScan, loading, hasPageSpeedKey = false }: Url
   }
 
   return (
-    <GlassCard variant="strong" className="p-6 sm:p-8">
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="flex items-start gap-3">
+    <GlassCard variant="strong" className={`transition-all duration-300 ${expanded ? 'p-6 sm:p-8' : 'p-4 sm:p-5'}`}>
+      <div 
+        className={`flex items-start justify-between ${onToggle ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+        onClick={onToggle}
+      >
+        <div className="flex items-start gap-3 flex-1">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-cyan-500/10 text-cyan-400">
             <ScanLine className="h-5 w-5" strokeWidth={1.75} />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-white">Scanner un site</h2>
-            <p className="mt-1 text-sm text-zinc-400">
-              Collez l’URL du site à auditer. Les scores Performance / SEO /
-              Accessibilité viennent de PageSpeed Insights by Google.
-            </p>
+            <h2 className={`font-semibold text-white ${expanded ? 'text-lg' : 'text-base mt-2'}`}>
+              Scanner un nouveau site
+            </h2>
+            {expanded && (
+              <p className="mt-1 text-sm text-zinc-400">
+                Collez l’URL du site à auditer. Scores Performance, SEO et Accessibilité propulsés par PageSpeed.
+              </p>
+            )}
           </div>
         </div>
+        
+        {onToggle && (
+           <button 
+             type="button"
+             className="ml-4 mt-2 p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800 transition-colors" 
+             aria-label={expanded ? "Replier" : "Déplier"}
+           >
+              {expanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+           </button>
+        )}
+      </div>
 
-        <label className="relative flex min-h-[52px] w-full items-center">
-          <span className="sr-only">URL du site à auditer</span>
+      {expanded && (
+        <form onSubmit={handleSubmit} className="space-y-5 mt-6 animate-in fade-in slide-in-from-top-4 duration-300">
+          <label className="relative flex min-h-[52px] w-full items-center">
+            <span className="sr-only">URL du site à auditer</span>
           <Globe
             className="pointer-events-none absolute left-4 h-5 w-5 text-zinc-500"
             strokeWidth={1.5}
@@ -123,9 +143,7 @@ export function UrlScannerCard({ onScan, loading, hasPageSpeedKey = false }: Url
         </div>
 
         <p className="text-xs text-zinc-500">
-          <strong className="font-medium text-zinc-400">Ville</strong> et{" "}
-          <strong className="font-medium text-zinc-400">activité</strong> sont optionnels : ils affinent la
-          recherche de concurrents (Google Places) et le tableau comparatif.
+          <strong className="font-medium text-zinc-400">Ville</strong> et <strong className="font-medium text-zinc-400">activité</strong> (optionnelles) affinent la recherche de concurrents locaux.
           {!hasPageSpeedKey && (
             <>
               {" "}
@@ -142,7 +160,8 @@ export function UrlScannerCard({ onScan, loading, hasPageSpeedKey = false }: Url
             </>
           )}
         </p>
-      </form>
+        </form>
+      )}
     </GlassCard>
   );
 }

@@ -8,6 +8,7 @@ import { UrlScannerCard } from "@/components/dashboard/url-scanner-card";
 import type { AuditPayload } from "@/types/audit";
 import { primeAuditSoundContext, playAuditReadyChime } from "@/lib/sounds/audit-ready-chime";
 import { readAuditSoundPreference } from "@/lib/sounds/audit-sound-preference";
+import { APP_NAME, APP_TAGLINE } from "@/lib/constants";
 import { HistorySidebar } from "@/components/dashboard/history-sidebar";
 import { saveAudit } from "@/lib/audit/history-store";
 import { useRef, useState } from "react";
@@ -16,6 +17,7 @@ export function AuditDashboard({ hasPageSpeedKey = false }: { hasPageSpeedKey?: 
   const [audit, setAudit] = useState<AuditPayload | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [scannerExpanded, setScannerExpanded] = useState(true);
   const audioCtxRef = useRef<AudioContext | null>(null);
 
   async function runScan(payload: { url: string; city?: string; activity?: string }) {
@@ -43,6 +45,7 @@ export function AuditDashboard({ hasPageSpeedKey = false }: { hasPageSpeedKey?: 
         return;
       }
       setAudit(data as AuditPayload);
+      setScannerExpanded(false);
       saveAudit(data as AuditPayload).catch(console.error);
       
       if (readAuditSoundPreference()) {
@@ -65,16 +68,26 @@ export function AuditDashboard({ hasPageSpeedKey = false }: { hasPageSpeedKey?: 
       />
 
       <div className="relative z-10 mx-auto flex min-h-screen max-w-4xl flex-col px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-        <HistorySidebar onSelectAudit={setAudit} />
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
-          <DashboardHeader />
-          <div className="sm:mt-2">
+        <HistorySidebar onSelectAudit={(a) => { setAudit(a); setScannerExpanded(false); }} />
+        
+        <header className="flex flex-col gap-5">
+          <div className="flex items-center justify-between gap-4">
+            <DashboardHeader />
             <AuditSoundToggle />
           </div>
-        </div>
+          <p className="whitespace-nowrap text-sm leading-relaxed text-zinc-400 sm:text-base">
+            {APP_TAGLINE}
+          </p>
+        </header>
 
         <main className="mt-12 flex flex-1 flex-col gap-10">
-          <UrlScannerCard onScan={runScan} loading={loading} hasPageSpeedKey={hasPageSpeedKey} />
+          <UrlScannerCard 
+            onScan={runScan} 
+            loading={loading} 
+            hasPageSpeedKey={hasPageSpeedKey} 
+            expanded={scannerExpanded}
+            onToggle={() => setScannerExpanded(!scannerExpanded)}
+          />
           {error && (
             <p
               className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200"
