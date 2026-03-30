@@ -63,7 +63,6 @@ export function AuditResults({ payload }: { payload: AuditPayload }) {
   const improvementSuggestions = buildImprovementSuggestions(payload);
   const hasOg = payload.openGraph.present;
   const hasBlocking = payload.blockingPoints.length > 0;
-  const bentoRight = hasOg || hasBlocking;
 
   return (
     <div className="space-y-8">
@@ -86,10 +85,11 @@ export function AuditResults({ payload }: { payload: AuditPayload }) {
 
       <div className="grid gap-6 lg:grid-cols-2 lg:items-stretch">
         <SiteScreenshotCard pageUrl={payload.url} />
-        <GlobalScoreSummary scores={payload.scores} suggestions={improvementSuggestions} />
+        <div className="flex flex-col gap-6">
+          <GlobalScoreSummary scores={payload.scores} suggestions={improvementSuggestions} />
+          {hasOg ? <OpenGraphPreviewCard pageUrl={payload.url} og={payload.openGraph} /> : null}
+        </div>
       </div>
-
-      <GeoVisibilityPanel geo={payload.geoVisibility} />
 
       <GlassCard variant="strong" className="p-6 sm:p-8">
         <p className="mb-6 text-sm text-zinc-400">
@@ -102,40 +102,63 @@ export function AuditResults({ payload }: { payload: AuditPayload }) {
         </div>
       </GlassCard>
 
+      <GeoVisibilityPanel geo={payload.geoVisibility} />
+
       {payload.competitiveComparison && (
         <LocalCompetitorsSection data={payload.competitiveComparison} />
       )}
-
-      <OpleadSection oplead={payload.oplead} />
 
       <section className="space-y-4" aria-labelledby="audit-details-heading">
         <h3
           id="audit-details-heading"
           className="text-lg font-semibold tracking-tight text-white"
         >
-          Détails
+          Actions à mener
         </h3>
-        {!bentoRight ? (
-          <DesignChecklistPanel
-            checks={payload.designChecks}
-            className="min-h-[280px] lg:min-h-[360px]"
-          />
-        ) : (
-          <div className="grid gap-6 lg:grid-cols-2 lg:items-stretch lg:gap-5">
-            <div className="flex h-full min-h-[280px] min-w-0 lg:min-h-[360px]">
-              <DesignChecklistPanel checks={payload.designChecks} className="w-full" />
-            </div>
-            <div className="flex h-full min-h-0 flex-col gap-6 lg:gap-5">
-              {hasOg ? (
-                <OpenGraphPreviewCard pageUrl={payload.url} og={payload.openGraph} />
-              ) : null}
-              {hasBlocking ? (
-                <BlockingPointsPanel points={payload.blockingPoints} className="min-h-0 flex-1" />
-              ) : null}
-            </div>
+        
+        <div className="grid gap-6 lg:grid-cols-2 lg:items-stretch lg:gap-5">
+          <div className="flex h-full min-h-[280px] min-w-0 lg:min-h-[360px]">
+            <DesignChecklistPanel 
+              checks={[
+                ...payload.designChecks,
+                {
+                  id: "geo-ai-check",
+                  label: "Optimisé pour l'IA",
+                  detail: "Fichiers robots.txt autorisés et présence du standard llms.txt.",
+                  ok: payload.geoVisibility ? (payload.geoVisibility.hasLlmsTxt && payload.geoVisibility.robotsTxtBlocksAI === false) : false
+                }
+              ]} 
+              className="w-full" 
+            />
           </div>
-        )}
+          <div className="flex h-full min-h-0 flex-col gap-6 lg:gap-5">
+            <OpleadSection oplead={payload.oplead} />
+            {hasBlocking ? (
+              <BlockingPointsPanel points={payload.blockingPoints} className="min-h-0 flex-1" />
+            ) : null}
+          </div>
+        </div>
       </section>
+
+      <div className="mt-12 overflow-hidden rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-cyan-500/10 via-violet-500/10 to-indigo-500/10 p-8 sm:p-10 text-center shadow-[0_0_40px_rgba(34,211,238,0.1)] relative">
+        <div className="absolute inset-0 bg-zinc-950/40 pointer-events-none" />
+        <div className="relative z-10 flex flex-col items-center justify-center space-y-5">
+          <h3 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            Vous souhaitez <span className="text-cyan-400">mettre à jour</span> votre site internet ?
+          </h3>
+          <p className="max-w-xl text-[15px] leading-relaxed text-zinc-300">
+            Une grande partie de ces optimisations est rapide à implémenter. Prenez une longueur d'avance et ne laissez plus vos concurrents capter vos leads.
+          </p>
+          <a
+            href="https://extragraph.fr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-cyan-500 via-violet-600 to-violet-600 px-10 py-4 text-base font-semibold text-white shadow-lg shadow-cyan-500/20 transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400"
+          >
+            Contactez-nous
+          </a>
+        </div>
+      </div>
     </div>
   );
 }

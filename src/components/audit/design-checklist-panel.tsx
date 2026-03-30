@@ -18,7 +18,7 @@ export function DesignChecklistPanel({ checks, className = "" }: DesignChecklist
               {c.ok ? (
                 <Check className="h-5 w-5" strokeWidth={2} />
               ) : (
-                <Circle className="h-5 w-5 text-zinc-600" strokeWidth={2} />
+                <Circle className="h-5 w-5 text-amber-500" strokeWidth={1.5} />
               )}
             </span>
             <div>

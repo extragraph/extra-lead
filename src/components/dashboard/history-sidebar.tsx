@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { History, X, Trash2, Archive, Loader2, ArrowRight } from "lucide-react";
-import { getAudits, deleteAudit, toggleArchiveAudit, type SavedAudit } from "@/lib/audit/history-store";
+import { History, X, Trash2, Archive, Loader2, ArrowRight, Download, Upload } from "lucide-react";
+import { getAudits, deleteAudit, toggleArchiveAudit, importAudits, type SavedAudit } from "@/lib/audit/history-store";
 import type { AuditPayload } from "@/types/audit";
 import { getGlobalAverage } from "@/lib/score-grade";
 
@@ -38,6 +38,39 @@ export function HistorySidebar({ onSelectAudit }: { onSelectAudit: (audit: Audit
   }
 
   const displayedAudits = audits.filter((a) => a.archived === showArchived);
+
+  async function handleExport() {
+    const data = await getAudits();
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `extra-lead-audits-${new Date().toISOString().split("T")[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      try {
+        const json = JSON.parse(ev.target?.result as string) as SavedAudit[];
+        if (Array.isArray(json)) {
+           await importAudits(json);
+           await loadAudits();
+        } else {
+           alert("Fichier non valide ou corrompu.");
+        }
+      } catch (err) {
+        alert("Erreur lors de la lecture du fichier JSON.");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  }
 
   return (
     <>
@@ -166,6 +199,26 @@ export function HistorySidebar({ onSelectAudit }: { onSelectAudit: (audit: Audit
               })}
             </ul>
           )}
+        </div>
+        
+
+        <div className="border-t border-zinc-800 p-4 shrink-0 bg-zinc-950">
+          <div className="flex gap-2">
+            <button
+              onClick={handleExport}
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-zinc-900 border border-zinc-700 py-2.5 text-sm font-medium text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors"
+              title="Sauvegarder l'historique dans un fichier"
+            >
+              <Download className="h-4 w-4" /> Exporter
+            </button>
+            <label
+              className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg bg-zinc-900 border border-zinc-700 py-2.5 text-sm font-medium text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors"
+              title="Charger un fichier d'historique"
+            >
+              <Upload className="h-4 w-4" /> Importer
+              <input type="file" accept=".json" className="hidden" onChange={handleImport} />
+            </label>
+          </div>
         </div>
       </div>
     </>

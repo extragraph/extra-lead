@@ -28,8 +28,27 @@ export function GlobalScoreSummary({ scores, suggestions }: Props) {
             ? "from-orange-500/20 to-rose-500/10"
             : "from-rose-500/25 to-red-500/10";
 
+  let cardSkin = "";
+  switch (tone) {
+    case "green":
+      cardSkin = "!border-emerald-500/30 ring-1 ring-emerald-500/10 !bg-none !bg-emerald-500/[0.03]";
+      break;
+    case "lime":
+      cardSkin = "!border-lime-500/30 ring-1 ring-lime-500/10 !bg-none !bg-lime-500/[0.03]";
+      break;
+    case "amber":
+      cardSkin = "!border-amber-500/40 ring-1 ring-amber-500/15 !bg-none !bg-amber-500/[0.05]";
+      break;
+    case "orange":
+      cardSkin = "!border-orange-500/40 ring-1 ring-orange-500/15 !bg-none !bg-orange-500/[0.05]";
+      break;
+    case "red":
+      cardSkin = "!border-rose-500/40 ring-1 ring-rose-500/15 !bg-none !bg-rose-500/[0.06]";
+      break;
+  }
+
   return (
-    <GlassCard variant="strong" className="flex flex-col gap-8 p-6 sm:p-8">
+    <GlassCard variant="strong" className={`flex flex-col gap-8 p-6 sm:p-8 transition-colors duration-700 ${cardSkin}`}>
       <div>
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-zinc-500">
           Score global

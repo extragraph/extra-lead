@@ -97,3 +97,23 @@ export async function toggleArchiveAudit(id: string, archived: boolean): Promise
     getReq.onerror = () => reject(getReq.error);
   });
 }
+
+export async function importAudits(audits: SavedAudit[]): Promise<void> {
+  const db = await getDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+    let completed = 0;
+    
+    if (audits.length === 0) return resolve();
+    
+    audits.forEach((audit) => {
+      const req = store.put(audit);
+      req.onsuccess = () => {
+        completed++;
+        if (completed === audits.length) resolve();
+      };
+      req.onerror = () => reject(req.error);
+    });
+  });
+}

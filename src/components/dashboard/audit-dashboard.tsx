@@ -66,12 +66,14 @@ export function AuditDashboard({ hasPageSpeedKey = false }: { hasPageSpeedKey?: 
 
       <div className="relative z-10 mx-auto flex min-h-screen max-w-4xl flex-col px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
         <HistorySidebar onSelectAudit={setAudit} />
-        <DashboardHeader />
-
-        <main className="mt-12 flex flex-1 flex-col gap-10">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
+          <DashboardHeader />
+          <div className="sm:mt-2">
             <AuditSoundToggle />
           </div>
+        </div>
+
+        <main className="mt-12 flex flex-1 flex-col gap-10">
           <UrlScannerCard onScan={runScan} loading={loading} hasPageSpeedKey={hasPageSpeedKey} />
           {error && (
             <p
