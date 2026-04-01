@@ -25,7 +25,7 @@ function SiteUrlLink({ urlLabel }: { urlLabel: string }) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="mt-0.5 inline-flex max-w-full min-w-0 items-center gap-1 font-mono text-[11px] text-cyan-400/90 hover:text-cyan-300 hover:underline"
+      className="mt-0.5 inline-flex max-w-full min-w-0 items-center gap-1 font-mono text-[11px] text-cyan-600 hover:underline"
       title={`${urlLabel} — ouvre dans un nouvel onglet`}
     >
       <span className="min-w-0 truncate">{urlLabel}</span>
@@ -64,7 +64,7 @@ function TierCell({
           title={tier.label}
           aria-hidden
         />
-        <span className="max-w-[120px] text-[11px] leading-snug text-zinc-400 sm:max-w-none sm:text-xs">
+        <span className="max-w-[120px] text-[11px] leading-snug text-muted sm:max-w-none sm:text-xs font-medium">
           {tier.label}
         </span>
       </div>
@@ -104,13 +104,15 @@ export function LocalCompetitorsSection({ data }: Props) {
             <Users className="h-5 w-5" strokeWidth={1.75} />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="text-lg font-semibold text-white">Vos concurrents locaux</h3>
-            <p className="mt-1 text-sm text-zinc-400">
+            <h3 className="text-lg font-semibold text-foreground">Vos concurrents locaux</h3>
+            <p className="mt-1 text-sm text-muted">
               Secteur détecté :{" "}
-              <span className="font-medium text-zinc-300">{data.sectorLabel}</span> —{" "}
-              <span className="font-medium text-zinc-300">{data.cityLabel}</span>
+              <span className="font-medium text-foreground">{data.sectorLabel}</span> —{" "}
+              <span className="font-medium text-foreground">{data.cityLabel}</span>
             </p>
-            <p className="mt-2 text-xs leading-relaxed text-amber-200/90">{data.disclaimer}</p>
+            <p className="mt-2 text-xs leading-relaxed font-semibold text-amber-900 border-l-2 border-amber-300 pl-3 py-1.5 bg-amber-50/70 rounded-r-md">
+              {data.disclaimer}
+            </p>
           </div>
         </div>
       </div>
@@ -118,20 +120,20 @@ export function LocalCompetitorsSection({ data }: Props) {
       <div className="overflow-x-auto">
         <table className="w-full min-w-[720px] border-collapse text-left text-sm">
           <thead>
-            <tr className="border-b border-white/10 bg-zinc-900/40">
-              <th className="sticky left-0 z-10 min-w-[200px] bg-zinc-900/95 px-4 py-3 pl-5 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+            <tr className="border-b border-[var(--panel-border)] bg-[var(--panel-bg)]/80">
+              <th className="sticky left-0 z-10 min-w-[200px] bg-[var(--panel-bg)] px-4 py-3 pl-5 text-xs font-semibold uppercase tracking-wider text-muted">
                 Site
               </th>
-              <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-zinc-500">
+              <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-muted">
                 Vitesse
               </th>
-              <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-zinc-500">
+              <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-muted">
                 Design
               </th>
-              <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-zinc-500">
+              <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-muted">
                 Conversion
               </th>
-              <th className="px-3 py-3 pr-5 text-center text-xs font-semibold uppercase tracking-wider text-zinc-500">
+              <th className="px-3 py-3 pr-5 text-center text-xs font-semibold uppercase tracking-wider text-muted">
                 Mobile
               </th>
             </tr>
@@ -149,24 +151,24 @@ export function LocalCompetitorsSection({ data }: Props) {
                   <td
                     className={`sticky left-0 z-10 max-w-[240px] px-4 py-4 pl-5 ${
                       row.isProspect
-                        ? "border-l-2 border-l-cyan-500/60 bg-zinc-950/90"
+                        ? "border-l-2 border-l-cyan-500/60 bg-[var(--panel-bg)]"
                         : isWinner
-                          ? "border-l-2 border-l-amber-400/50 bg-zinc-950/85"
-                          : "bg-zinc-950/80"
+                          ? "border-l-2 border-l-amber-400/50 bg-[var(--panel-bg)]"
+                          : "bg-[var(--panel-bg)]"
                     }`}
                   >
                     <div className="flex items-start gap-2">
                       {isWinner && (
                         <span
-                          className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-300/25 to-amber-600/20 text-amber-300 shadow-inner ring-1 ring-amber-400/30"
+                          className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-amber-200 bg-amber-50 text-amber-600 shadow-sm"
                           title="Meilleur profil simulé sur ce benchmark"
                         >
-                          <Trophy className="h-4 w-4" strokeWidth={1.75} aria-hidden />
+                          <Trophy className="h-4 w-4" strokeWidth={2} aria-hidden />
                         </span>
                       )}
                       <div className="min-w-0 flex-1">
                         <p
-                          className={`font-medium ${row.isProspect ? "text-cyan-100" : "text-zinc-200"}`}
+                          className={`font-semibold ${row.isProspect ? "text-cyan-800" : "text-zinc-900"}`}
                         >
                           {row.name}
                         </p>
@@ -205,8 +207,8 @@ export function LocalCompetitorsSection({ data }: Props) {
         </table>
       </div>
 
-      <div className="border-t border-white/10 bg-zinc-950/40 px-5 py-6 sm:px-6">
-        <p className="mb-4 text-center text-sm text-zinc-400">
+      <div className="border-t border-[var(--panel-border)] bg-[var(--panel-bg)] px-5 py-6 sm:px-6">
+        <p className="mb-4 text-center text-sm text-muted">
           Voulez-vous un audit réel de vos concurrents ?
         </p>
         <a

@@ -19,7 +19,7 @@ type UrlScannerCardProps = {
 };
 
 const inputClass =
-  "h-full min-h-[52px] w-full rounded-xl border border-white/10 bg-zinc-950/60 py-3 text-[15px] text-white placeholder:text-zinc-600 outline-none ring-0 transition focus:border-cyan-500/40 focus:bg-zinc-950/80 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.12)] disabled:opacity-60";
+  "h-full min-h-[52px] w-full rounded-xl border border-[var(--panel-border)] bg-[var(--input-bg)] py-3 text-[15px] text-foreground placeholder:text-muted outline-none ring-0 transition focus:border-cyan-500/40 focus:bg-[var(--input-bg)] focus:shadow-[0_0_0_3px_rgba(34,211,238,0.12)] disabled:opacity-60";
 
 export function UrlScannerCard({ onScan, loading, hasPageSpeedKey = false, expanded = true, onToggle }: UrlScannerCardProps) {
   const [url, setUrl] = useState("");
@@ -49,11 +49,11 @@ export function UrlScannerCard({ onScan, loading, hasPageSpeedKey = false, expan
             <ScanLine className="h-5 w-5" strokeWidth={1.75} />
           </div>
           <div>
-            <h2 className={`font-semibold text-white ${expanded ? 'text-lg' : 'text-base mt-2'}`}>
+            <h2 className={`font-semibold text-foreground ${expanded ? 'text-lg' : 'text-base mt-2'}`}>
               Scanner un nouveau site
             </h2>
             {expanded && (
-              <p className="mt-1 text-sm text-zinc-400">
+              <p className="mt-1 text-sm text-muted">
                 Collez l’URL du site à auditer. Scores Performance, SEO et Accessibilité propulsés par PageSpeed.
               </p>
             )}
@@ -142,18 +142,18 @@ export function UrlScannerCard({ onScan, loading, hasPageSpeedKey = false, expan
           </button>
         </div>
 
-        <p className="text-xs text-zinc-500">
-          <strong className="font-medium text-zinc-400">Ville</strong> et <strong className="font-medium text-zinc-400">activité</strong> (optionnelles) affinent la recherche de concurrents locaux.
+        <p className="text-xs text-muted">
+          <strong className="font-medium text-foreground">Ville</strong> et <strong className="font-medium text-foreground">activité</strong> (optionnelles) affinent la recherche de concurrents locaux.
           {!hasPageSpeedKey && (
             <>
               {" "}
               Sans clé Google, les scores sont{" "}
-              <strong className="font-medium text-zinc-400">simulés</strong> (déterministes par URL). Ajoutez{" "}
-              <code className="rounded bg-zinc-800 px-1 py-0.5 text-[10px] text-zinc-300">
+              <strong className="font-medium text-foreground">simulés</strong> (déterministes par URL). Ajoutez{" "}
+              <code className="rounded bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 text-[10px] text-muted dark:text-zinc-300">
                 GOOGLE_API_KEY
               </code>{" "}
               (ou{" "}
-              <code className="rounded bg-zinc-800 px-1 py-0.5 text-[10px] text-zinc-300">
+              <code className="rounded bg-zinc-100 dark:bg-zinc-800 px-1 py-0.5 text-[10px] text-muted dark:text-zinc-300">
                 GOOGLE_PAGESPEED_API_KEY
               </code>
               ) pour les mesures réelles.

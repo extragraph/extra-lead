@@ -50,10 +50,10 @@ export function GlobalScoreSummary({ scores, suggestions, designAge }: Props) {
 
   const ageColor = designAge
     ? designAge.ageYears >= 5
-      ? "border-rose-500/40 bg-rose-500/10 text-rose-300"
+      ? "border-rose-200 bg-rose-50 text-rose-800"
       : designAge.ageYears >= 3
-        ? "border-amber-500/40 bg-amber-500/10 text-amber-300"
-        : "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+        ? "border-amber-200 bg-amber-50 text-amber-800"
+        : "border-emerald-200 bg-emerald-50 text-emerald-800"
     : null;
 
   const ageLabel = designAge
@@ -67,7 +67,7 @@ export function GlobalScoreSummary({ scores, suggestions, designAge }: Props) {
   return (
     <GlassCard variant="strong" className={`flex flex-col gap-8 p-6 sm:p-8 transition-colors duration-700 ${cardSkin}`}>
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.2em] text-zinc-500">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
           Score global
         </p>
         <div className="mt-4 flex flex-wrap items-end gap-3">
@@ -76,12 +76,10 @@ export function GlobalScoreSummary({ scores, suggestions, designAge }: Props) {
           >
             {letter}
           </span>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-5xl font-semibold tabular-nums text-white sm:text-6xl">
+            <span className="text-5xl font-semibold tabular-nums text-foreground sm:text-6xl">
               {avg}
             </span>
-            <span className="text-lg font-medium text-zinc-500">/100</span>
-          </div>
+            <span className="text-lg font-medium text-muted">/100</span>
         </div>
 
         {designAge && ageColor && (
@@ -91,28 +89,28 @@ export function GlobalScoreSummary({ scores, suggestions, designAge }: Props) {
           </div>
         )}
 
-        <p className="mt-4 text-sm leading-relaxed text-zinc-400">
+        <p className="mt-4 text-sm leading-relaxed text-muted font-medium">
           Score pondéré : Performance et SEO comptent davantage (impact fort sur le
           référencement), puis Accessibilité et Design &amp; UX. La lettre résume la santé globale
           du site.
         </p>
       </div>
 
-      <div className="border-t border-white/10 pt-6">
-        <div className="flex items-center gap-2 text-violet-300">
+      <div className="border-t border-[var(--panel-border)] pt-6">
+        <div className="flex items-center gap-2 text-violet-600 dark:text-violet-300">
           <Lightbulb className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-          <h4 className="text-sm font-semibold text-white">Suggestions d&apos;amélioration</h4>
+          <h4 className="text-sm font-semibold text-foreground">Suggestions d&apos;amélioration</h4>
         </div>
         {suggestions.length > 0 ? (
-          <ul className="mt-4 list-inside list-disc space-y-2.5 text-sm leading-relaxed text-zinc-300">
+          <ul className="mt-4 list-inside list-disc space-y-2.5 text-sm leading-relaxed text-muted font-medium">
             {suggestions.map((line, i) => (
-              <li key={i} className="marker:text-violet-400">
+              <li key={i} className="marker:text-violet-600 dark:marker:text-violet-400">
                 {line}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="mt-4 text-sm text-zinc-500">
+          <p className="mt-4 text-sm text-muted">
             Aucune alerte majeure sur les critères suivis — poursuivez avec le détail des jauges et
             la section Détails.
           </p>
@@ -120,9 +118,9 @@ export function GlobalScoreSummary({ scores, suggestions, designAge }: Props) {
       </div>
 
       <div
-        className={`mt-auto flex items-center gap-2 rounded-xl border border-white/5 bg-gradient-to-br ${ring} px-4 py-3 text-xs text-zinc-400`}
+        className={`mt-auto flex items-center gap-2 rounded-xl border border-[var(--panel-border)] bg-gradient-to-br ${ring} px-4 py-3 text-xs text-muted font-medium`}
       >
-        <TrendingUp className="h-4 w-4 shrink-0 text-zinc-500" strokeWidth={1.5} />
+        <TrendingUp className="h-4 w-4 shrink-0 text-violet-500 dark:text-zinc-500" strokeWidth={1.5} />
         <span>
           Synthèse instantanée — affinez avec le détail des jauges ci-dessous.
         </span>

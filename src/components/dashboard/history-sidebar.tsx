@@ -77,7 +77,7 @@ export function HistorySidebar({ onSelectAudit }: { onSelectAudit: (audit: Audit
       {/* Floating Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-40 flex items-center justify-center gap-2 rounded-full bg-zinc-900 border border-zinc-700 p-4 text-white shadow-xl hover:bg-zinc-800 transition-transform hover:scale-105"
+        className="fixed bottom-6 right-6 z-40 flex items-center justify-center gap-2 rounded-full bg-[var(--input-bg)] border border-[var(--panel-border)] p-4 text-foreground shadow-xl hover:bg-zinc-50 transition-transform hover:scale-105"
         aria-label="Voir l'historique"
       >
         <History className="h-5 w-5" />
@@ -94,29 +94,29 @@ export function HistorySidebar({ onSelectAudit }: { onSelectAudit: (audit: Audit
 
       {/* Drawer */}
       <div
-        className={`fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col bg-zinc-950 border-l border-zinc-800 shadow-2xl transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col bg-white border-l border-zinc-200 shadow-2xl transition-transform duration-300 ease-in-out dark:bg-[var(--panel-bg)] dark:border-[var(--panel-border)] ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-between border-b border-zinc-800 p-4">
+        <div className="flex items-center justify-between border-b border-[var(--panel-border)] p-4">
           <div className="flex items-center gap-2">
-            <History className="h-5 w-5 text-zinc-400" />
-            <h2 className="text-lg font-semibold text-white">Vos audits</h2>
+            <History className="h-5 w-5 text-muted" />
+            <h2 className="text-lg font-semibold text-foreground">Vos audits</h2>
           </div>
           <button
             onClick={() => setIsOpen(false)}
-            className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-900 hover:text-white"
+            className="rounded-lg p-2 text-muted hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-foreground"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="flex items-center justify-between border-b border-zinc-800 p-2">
-          <div className="flex rounded-lg bg-zinc-900 p-1 w-full">
+        <div className="flex items-center justify-between border-b border-[var(--panel-border)] p-2">
+          <div className="flex rounded-lg bg-zinc-100 dark:bg-white/5 border border-[var(--panel-border)] p-1 w-full">
             <button
               onClick={() => setShowArchived(false)}
               className={`flex-1 rounded-md py-1.5 text-sm font-medium transition-colors ${
-                !showArchived ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-white hover:bg-zinc-800/50"
+                !showArchived ? "bg-[var(--background)] text-foreground shadow-sm" : "text-muted hover:text-foreground"
               }`}
             >
               Récents
@@ -124,7 +124,7 @@ export function HistorySidebar({ onSelectAudit }: { onSelectAudit: (audit: Audit
             <button
               onClick={() => setShowArchived(true)}
               className={`flex-1 rounded-md py-1.5 text-sm font-medium transition-colors ${
-                showArchived ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-white hover:bg-zinc-800/50"
+                showArchived ? "bg-[var(--background)] text-foreground shadow-sm" : "text-muted hover:text-foreground"
               }`}
             >
                Archivés
@@ -135,29 +135,29 @@ export function HistorySidebar({ onSelectAudit }: { onSelectAudit: (audit: Audit
         <div className="flex-1 overflow-y-auto p-4">
           {loading ? (
             <div className="flex justify-center p-8">
-              <Loader2 className="h-6 w-6 animate-spin text-zinc-500" />
+              <Loader2 className="h-6 w-6 animate-spin text-muted" />
             </div>
           ) : displayedAudits.length === 0 ? (
-            <div className="text-center p-8 text-zinc-500">
+            <div className="text-center p-8 text-muted">
               <p className="text-sm">Aucun audit trouvé.</p>
             </div>
           ) : (
             <ul className="flex flex-col gap-3">
               {displayedAudits.map((item) => {
                 const globalScore = getGlobalAverage(item.payload.scores);
-                const scoreColor = globalScore >= 75 ? "text-emerald-400" : globalScore >= 50 ? "text-amber-400" : "text-rose-400";
+                const scoreColor = globalScore >= 75 ? "text-emerald-600 dark:text-emerald-400" : globalScore >= 50 ? "text-amber-600 dark:text-amber-400" : "text-rose-600 dark:text-rose-400";
                 
                 return (
                   <li
                     key={item.id}
-                    className="group relative flex flex-col gap-2 rounded-xl border border-zinc-800 bg-zinc-900 p-4 hover:border-zinc-700 transition-colors"
+                    className="group relative flex flex-col gap-2 rounded-xl border border-[var(--panel-border)] bg-[var(--panel-bg)] p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-white/5"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex flex-col min-w-0 flex-1 pr-2">
-                        <span className="truncate text-sm font-medium text-zinc-200">
+                        <span className="truncate text-sm font-medium text-foreground">
                           {item.url.replace(/^https?:\/\/(www\.)?/, "")}
                         </span>
-                        <span className="text-xs text-zinc-500">
+                        <span className="text-xs text-muted">
                           {new Date(item.auditedAt).toLocaleDateString("fr-FR", {
                             day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"
                           })}
@@ -181,7 +181,7 @@ export function HistorySidebar({ onSelectAudit }: { onSelectAudit: (audit: Audit
                       </button>
                       <button
                         onClick={() => handleToggleArchive(item.id, item.archived)}
-                        className="p-1.5 rounded-lg text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300"
+                        className="p-1.5 rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
                         title={item.archived ? "Désarchiver" : "Archiver"}
                       >
                         <Archive className="h-4 w-4" />
@@ -202,17 +202,17 @@ export function HistorySidebar({ onSelectAudit }: { onSelectAudit: (audit: Audit
         </div>
         
 
-        <div className="border-t border-zinc-800 p-4 shrink-0 bg-zinc-950">
+        <div className="shrink-0 border-t border-[var(--panel-border)] bg-[var(--panel-bg)] p-4">
           <div className="flex gap-2">
             <button
               onClick={handleExport}
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-zinc-900 border border-zinc-700 py-2.5 text-sm font-medium text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors"
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--input-bg)] border border-[var(--panel-border)] py-2.5 text-sm font-medium text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors"
               title="Sauvegarder l'historique dans un fichier"
             >
               <Download className="h-4 w-4" /> Exporter
             </button>
             <label
-              className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg bg-zinc-900 border border-zinc-700 py-2.5 text-sm font-medium text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors"
+              className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg bg-[var(--input-bg)] border border-[var(--panel-border)] py-2.5 text-sm font-medium text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors"
               title="Charger un fichier d'historique"
             >
               <Upload className="h-4 w-4" /> Importer

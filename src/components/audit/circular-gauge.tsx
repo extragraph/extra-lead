@@ -12,7 +12,7 @@ function gaugeColor(score: number): string {
 export function CircularGauge({ slice }: { slice: AuditScoreSlice }) {
   const rest = Math.max(0, 100 - slice.score);
   const data = [
-    { name: "rest", value: rest, fill: "rgba(255,255,255,0.06)" },
+    { name: "rest", value: rest, fill: "var(--gauge-track)" },
     { name: "score", value: slice.score, fill: gaugeColor(slice.score) },
   ];
 
@@ -46,12 +46,12 @@ export function CircularGauge({ slice }: { slice: AuditScoreSlice }) {
           >
             {slice.score}
           </span>
-          <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted">
             / 100
           </span>
         </div>
       </div>
-      <p className="mt-2 text-center text-sm font-medium text-zinc-200">{slice.label}</p>
+      <p className="mt-2 text-center text-sm font-bold tracking-tight text-foreground">{slice.label}</p>
     </div>
   );
 }

@@ -113,19 +113,19 @@ export function SiteScreenshotCard({ pageUrl, initialScreenshot, onScreenshotCap
 
   return (
     <GlassCard variant="strong" className="overflow-hidden p-0">
-      <div className="border-b border-white/10 px-5 py-3">
-        <h3 className="text-sm font-semibold text-white">Aperçu du site</h3>
-        <p className="text-xs text-zinc-500">Capture mobile (viewport) — rendu réel du prospect</p>
+      <div className="border-b border-zinc-200 px-5 py-3 dark:border-white/10">
+        <h3 className="text-sm font-semibold text-foreground">Aperçu du site</h3>
+        <p className="text-xs text-muted">Capture mobile (viewport) — rendu réel du prospect</p>
       </div>
 
-      <div className="relative bg-zinc-950/50 p-4 sm:p-5">
+      <div className="relative bg-zinc-50/50 p-4 dark:bg-zinc-950/50 sm:p-5">
         <div
-          className={`relative overflow-hidden rounded-2xl bg-zinc-900/40 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.65),0_0_0_1px_rgba(255,255,255,0.06)] ring-1 ring-white/10 ${loadState === "ok" ? "opacity-100" : "min-h-[280px]"}`}
+          className={`relative overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-zinc-200 dark:bg-zinc-900/40 dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.65),0_0_0_1px_rgba(255,255,255,0.06)] dark:ring-white/10 ${loadState === "ok" ? "opacity-100" : "min-h-[280px]"}`}
         >
           {(loadState === "loading" || (loadState === "ok" && blobUrl && !imageDecoded)) && (
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-zinc-900/90">
-              <Loader2 className="h-8 w-8 animate-spin text-cyan-400" strokeWidth={1.5} />
-              <p className="text-xs text-zinc-500">
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-white/90 dark:bg-zinc-900/90">
+              <Loader2 className="h-8 w-8 animate-spin text-cyan-500 dark:text-cyan-400" strokeWidth={1.5} />
+              <p className="text-xs text-muted">
                 {loadState === "loading" ? "Génération de la capture…" : "Affichage de l’image…"}
               </p>
             </div>

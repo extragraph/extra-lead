@@ -15,10 +15,10 @@ export function OpleadSection({ oplead }: { oplead: AuditPayload["oplead"] }) {
             <Sparkles className="h-6 w-6" strokeWidth={1.75} />
           </div>
         <div className="min-w-0 flex-1 space-y-2">
-          <h3 className="text-lg font-semibold text-white">{oplead.headline}</h3>
-          <p className="text-[15px] leading-relaxed text-zinc-200">{oplead.body}</p>
+          <h3 className="text-lg font-semibold text-foreground">{oplead.headline}</h3>
+          <p className="text-[15px] leading-relaxed text-muted">{oplead.body}</p>
           {isAlert && !oplead.detectedFromHtml && (
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-muted/60">
               Indice basé sur une analyse de secours (page HTML non disponible ou partielle).
             </p>
           )}

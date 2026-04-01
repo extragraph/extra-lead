@@ -9,9 +9,9 @@ export function ExportAuditPdfButton({ audit }: { audit: AuditPayload }) {
     <button
       type="button"
       onClick={() => generateAuditPdf(audit)}
-      className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-zinc-900/80 px-5 py-2.5 text-sm font-medium text-zinc-100 shadow-inner transition hover:border-cyan-500/30 hover:bg-zinc-800/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400"
+      className="inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--panel-border)] bg-[var(--input-bg)] px-5 py-2.5 text-sm font-medium text-foreground shadow-sm transition hover:bg-zinc-100 dark:hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400"
     >
-      <FileDown className="h-4 w-4 text-cyan-400" strokeWidth={2} />
+      <FileDown className="h-4 w-4 text-cyan-600 dark:text-cyan-400" strokeWidth={2} />
       Exporter l’audit (PDF)
     </button>
   );

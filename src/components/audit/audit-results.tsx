@@ -19,12 +19,12 @@ function IntegrationHintsPanel({ hints }: { hints: string[] }) {
   if (hints.length === 0) return null;
   return (
     <div
-      className="rounded-xl border border-amber-500/35 bg-amber-500/10 px-4 py-3 text-sm text-amber-100"
+      className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500/35 dark:bg-amber-500/10 dark:text-amber-100"
       role="status"
     >
       <div className="flex gap-2">
-        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" strokeWidth={2} />
-        <ul className="list-inside list-disc space-y-1.5 text-amber-100/95">
+        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" strokeWidth={2} />
+        <ul className="list-inside list-disc space-y-1.5 text-amber-900/90 dark:text-amber-100/95">
           {hints.map((h, i) => (
             <li key={i} className="leading-snug">
               {h}
@@ -40,20 +40,20 @@ function SourceBadge({ payload }: { payload: AuditPayload }) {
   const { dataSource } = payload;
   if (dataSource === "pagespeed") {
     return (
-      <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">
+      <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
         Données PageSpeed Insights (réelles)
       </span>
     );
   }
   if (dataSource === "pagespeed_partial") {
     return (
-      <span className="rounded-full border border-amber-500/25 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-200">
+      <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">
         PageSpeed indisponible — scores simulés
       </span>
     );
   }
   return (
-    <span className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs font-medium text-cyan-200">
+    <span className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-800">
       Mode démo — scores simulés (ajoutez une clé API Google)
     </span>
   );
@@ -68,8 +68,8 @@ export function AuditResults({ payload }: { payload: AuditPayload }) {
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-white">Résultats de l’audit</h2>
-          <p className="mt-1 truncate text-sm text-zinc-500" title={payload.url}>
+          <h2 className="text-xl font-semibold text-foreground">Résultats de l’audit</h2>
+          <p className="mt-1 truncate text-sm text-muted" title={payload.url}>
             {payload.url}
           </p>
         </div>
@@ -92,7 +92,7 @@ export function AuditResults({ payload }: { payload: AuditPayload }) {
       </div>
 
       <GlassCard variant="strong" className="p-6 sm:p-8">
-        <p className="mb-6 text-sm text-zinc-400">
+        <p className="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
           Jauges synthétiques — vert &gt; 75, orange 50–74, rouge &lt; 50.
         </p>
         <div className="grid grid-cols-2 gap-8 lg:grid-cols-4">
@@ -111,7 +111,7 @@ export function AuditResults({ payload }: { payload: AuditPayload }) {
       <section className="space-y-4" aria-labelledby="audit-details-heading">
         <h3
           id="audit-details-heading"
-          className="text-lg font-semibold tracking-tight text-white"
+          className="text-lg font-semibold tracking-tight text-foreground"
         >
           Actions à mener
         </h3>
@@ -140,14 +140,14 @@ export function AuditResults({ payload }: { payload: AuditPayload }) {
         </div>
       </section>
 
-      <div className="mt-12 overflow-hidden rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-cyan-500/10 via-violet-500/10 to-indigo-500/10 p-8 sm:p-10 text-center shadow-[0_0_40px_rgba(34,211,238,0.1)] relative">
-        <div className="absolute inset-0 bg-zinc-950/40 pointer-events-none" />
+      <div className="mt-12 overflow-hidden rounded-2xl border border-[var(--panel-border)] bg-[var(--background)] p-8 sm:p-10 text-center shadow-xl relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-violet-500/5 to-indigo-500/5 pointer-events-none" />
         <div className="relative z-10 flex flex-col items-center justify-center space-y-5">
-          <h3 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-            Vous souhaitez <span className="text-cyan-400">mettre à jour</span> votre site internet ?
+          <h3 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            Vous souhaitez <span className="text-[var(--neon-cyan)]">mettre à jour</span> votre site internet ?
           </h3>
-          <p className="max-w-xl text-[15px] leading-relaxed text-zinc-300">
-            Une grande partie de ces optimisations est rapide à implémenter. Prenez une longueur d'avance et ne laissez plus vos concurrents capter vos leads.
+          <p className="max-w-xl text-[15px] font-medium leading-relaxed text-muted">
+            Une grande partie de ces optimisations est rapide à implémenter. Prenez une longueur d&apos;avance et ne laissez plus vos concurrents capter vos leads.
           </p>
           <a
             href="https://extragraph.fr"
